@@ -1,0 +1,14 @@
+{
+    "name": "mikemirten/json-api-bundle",
+    "license": "GPL-3.0",
+
+    "require": {
+        "mikemirten/json-api": "^0.1.0"
+    },
+
+    "autoload": {
+        "psr-4": {
+            "Mikemirten\\Bundle\\JsonApi\\": "src/"
+        }
+    }
+}

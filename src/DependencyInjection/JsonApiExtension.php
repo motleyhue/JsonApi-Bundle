@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Mikemirten\Bundles\JsonApiBundle\DependencyInjection;
+namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;

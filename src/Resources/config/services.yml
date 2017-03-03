@@ -1,0 +1,25 @@
+parameters:
+    mrtn_json_api.document_hydrator.class: 'Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator'
+
+    mrtn_json_api.document_hydrator.extension.links.class:        'Mikemirten\Component\JsonApi\Hydrator\Extension\LinksExtension'
+    mrtn_json_api.document_hydrator.extension.metadata.class:     'Mikemirten\Component\JsonApi\Hydrator\Extension\MetadataExtension'
+    mrtn_json_api.document_hydrator.extension.relationship.class: 'Mikemirten\Component\JsonApi\Hydrator\Extension\RelationshipExtension'
+
+services:
+    mrtn_json_api.document_hydrator:
+        class: '%mrtn_json_api.document_hydrator.class%'
+
+    mrtn_json_api.document_hydrator.extension.links:
+        class: '%mrtn_json_api.document_hydrator.extension.links.class%'
+        tags:
+            - { name: 'mrtn_json_api.document_hydrator.extension' }
+
+    mrtn_json_api.document_hydrator.extension.metadata:
+        class: '%mrtn_json_api.document_hydrator.extension.metadata.class%'
+        tags:
+            - { name: 'mrtn_json_api.document_hydrator.extension' }
+
+    mrtn_json_api.document_hydrator.extension.relationship:
+        class: '%mrtn_json_api.document_hydrator.extension.relationship.class%'
+        tags:
+            - { name: 'mrtn_json_api.document_hydrator.extension' }

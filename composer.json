@@ -8,7 +8,7 @@
 
     "autoload": {
         "psr-4": {
-            "Mikemirten\\Bundle\\JsonApi\\": "src/"
+            "Mikemirten\\Bundle\\JsonApiBundle\\": "src/"
         }
     }
 }

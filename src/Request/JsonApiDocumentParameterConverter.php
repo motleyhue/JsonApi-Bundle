@@ -40,21 +40,33 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        if (! $request->headers->contains('Content-Type', 'application/vnd.api+json')) {
+        $isOptional = $configuration->isOptional();
+        $isJsonApi  = $request->headers->contains('Content-Type', 'application/vnd.api+json');
+
+        if (! $isOptional && ! $isJsonApi) {
             throw new BadRequestHttpException(sprintf(
                 'Invalid media-type of request, "application/vnd.api+json" expected, "%s" given.',
                 implode(', ', (array) $request->headers->get('Content-Type'))
             ));
         }
 
-        $content  = $request->getContent();
+        $content = $request->getContent();
+
+        if (empty($content)) {
+            if ($isOptional) {
+                return false;
+            }
+
+            throw new BadRequestHttpException('Request body is empty');
+        }
+
         $decoded  = $this->decodeContent($content);
         $document = $this->hydrator->hydrate($decoded);
         $expected = $configuration->getClass();
 
         if ($expected === AbstractDocument::class || $document instanceof $expected) {
             $request->attributes->set($configuration->getName(), $document);
-            return;
+            return true;
         }
 
         throw new BadRequestHttpException(sprintf(

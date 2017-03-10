@@ -68,6 +68,7 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
      * @param  Request        $request
      * @param  ParamConverter $configuration
      * @throws BadRequestHttpException
+     * @return string | null
      */
     protected function resolveRequestBody(Request $request, ParamConverter $configuration)
     {

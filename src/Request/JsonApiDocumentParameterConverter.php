@@ -40,24 +40,10 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
      */
     public function apply(Request $request, ParamConverter $configuration)
     {
-        $isOptional = $configuration->isOptional();
-        $isJsonApi  = $request->headers->contains('Content-Type', 'application/vnd.api+json');
+        $content = $this->resolveRequestBody($request, $configuration);
 
-        if (! $isOptional && ! $isJsonApi) {
-            throw new BadRequestHttpException(sprintf(
-                'Invalid media-type of request, "application/vnd.api+json" expected, "%s" given.',
-                implode(', ', (array) $request->headers->get('Content-Type'))
-            ));
-        }
-
-        $content = $request->getContent();
-
-        if (empty($content)) {
-            if ($isOptional) {
-                return false;
-            }
-
-            throw new BadRequestHttpException('Request body is empty');
+        if ($content === null) {
+            return false;
         }
 
         $decoded  = $this->decodeContent($content);
@@ -77,10 +63,41 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
     }
 
     /**
+     * Resolve request body
+     *
+     * @param  Request        $request
+     * @param  ParamConverter $configuration
+     * @throws BadRequestHttpException
+     */
+    protected function resolveRequestBody(Request $request, ParamConverter $configuration)
+    {
+        $isOptional = $configuration->isOptional();
+        $isJsonApi  = $request->headers->contains('Content-Type', 'application/vnd.api+json');
+
+        if (! $isOptional && ! $isJsonApi) {
+            throw new BadRequestHttpException(sprintf(
+                'Invalid media-type of request, "application/vnd.api+json" expected, "%s" given.',
+                implode(', ', (array) $request->headers->get('Content-Type'))
+            ));
+        }
+
+        $content = $request->getContent();
+
+        if (! empty($content)) {
+            return $content;
+        }
+
+        if (! $isOptional) {
+            throw new BadRequestHttpException('Request body is empty');
+        }
+    }
+
+    /**
      * Decode JSON
      *
      * @param  string $content
      * @return mixed
+     * @throws BadRequestHttpException
      */
     protected function decodeContent(string $content): \stdClass
     {

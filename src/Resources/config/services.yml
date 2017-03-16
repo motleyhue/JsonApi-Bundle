@@ -4,6 +4,7 @@ parameters:
     mrtn_json_api.document_hydrator.extension.links.class:        'Mikemirten\Component\JsonApi\Hydrator\Extension\LinksExtension'
     mrtn_json_api.document_hydrator.extension.metadata.class:     'Mikemirten\Component\JsonApi\Hydrator\Extension\MetadataExtension'
     mrtn_json_api.document_hydrator.extension.relationship.class: 'Mikemirten\Component\JsonApi\Hydrator\Extension\RelationshipExtension'
+    mrtn_json_api.document_hydrator.extension.errors.class:       'Mikemirten\Component\JsonApi\Hydrator\Extension\ErrorsExtension'
 
     mrtn_json_api.document.parameter_converter.class: 'Mikemirten\Bundle\JsonApiBundle\Request\JsonApiDocumentParameterConverter'
 
@@ -23,6 +24,11 @@ services:
 
     mrtn_json_api.document_hydrator.extension.relationship:
         class: '%mrtn_json_api.document_hydrator.extension.relationship.class%'
+        tags:
+            - { name: 'mrtn_json_api.document_hydrator.extension' }
+
+    mrtn_json_api.document_hydrator.extension.errors:
+        class: '%mrtn_json_api.document_hydrator.extension.errors.class%'
         tags:
             - { name: 'mrtn_json_api.document_hydrator.extension' }
 

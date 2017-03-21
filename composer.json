@@ -3,7 +3,7 @@
     "license": "GPL-3.0",
 
     "require": {
-        "mikemirten/json-api": "^0.3",
+        "mikemirten/json-api": "^0.5",
         "sensio/framework-extra-bundle": "^3.0"
     },
 

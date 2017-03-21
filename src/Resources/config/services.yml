@@ -8,6 +8,11 @@ parameters:
 
     mrtn_json_api.document.parameter_converter.class: 'Mikemirten\Bundle\JsonApiBundle\Request\JsonApiDocumentParameterConverter'
 
+    mrtn_json_api.http_client.class:                'Mikemirten\Component\JsonApi\HttpClient\HttpClient'
+    mrtn_json_api.http_client.adapter.guzzle.class: 'Mikemirten\Component\JsonApi\HttpClient\Adapter\GuzzleAdapter'
+    mrtn_json_api.http_client.guzzle.class:         'GuzzleHttp\Client'
+
+
 services:
     mrtn_json_api.document_hydrator:
         class: '%mrtn_json_api.document_hydrator.class%'
@@ -38,3 +43,16 @@ services:
             - '@mrtn_json_api.document_hydrator'
         tags:
             - { name: 'request.param_converter' }
+
+    mrtn_json_api.http_client:
+        class: '%mrtn_json_api.http_client.class%'
+        arguments:
+            - '@mrtn_json_api.http_client.adapter.guzzle'
+
+    mrtn_json_api.http_client.adapter.guzzle:
+        class: '%mrtn_json_api.http_client.adapter.guzzle.class%'
+        arguments:
+            - '@mrtn_json_api.http_client.guzzle'
+
+    mrtn_json_api.http_client.guzzle:
+        class: '%mrtn_json_api.http_client.guzzle.class%'

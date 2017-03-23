@@ -47,7 +47,7 @@ class JsonApiViewListenerTest extends TestCase
         $resource->method('toArray')
             ->willReturn(['resource_data' => 'qwerty']);
 
-        $event = $this->createEvent($resource, '{"data":{"resource_data":"qwerty"}}');
+        $event = $this->createEvent($resource, '{"jsonapi":{"version":"1.0"},"data":{"resource_data":"qwerty"}}');
 
         $listener = new JsonApiViewListener();
         $listener->onKernelView($event);
@@ -60,7 +60,7 @@ class JsonApiViewListenerTest extends TestCase
         $error->method('toArray')
             ->willReturn(['error_data' => 'qwerty']);
 
-        $event = $this->createEvent($error, '{"errors":[{"error_data":"qwerty"}]}');
+        $event = $this->createEvent($error, '{"errors":[{"error_data":"qwerty"}],"jsonapi":{"version":"1.0"}}');
 
         $listener = new JsonApiViewListener();
         $listener->onKernelView($event);

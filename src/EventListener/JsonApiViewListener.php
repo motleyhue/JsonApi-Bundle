@@ -5,6 +5,7 @@ namespace Mikemirten\Bundle\JsonApiBundle\EventListener;
 
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
+use Mikemirten\Component\JsonApi\Document\JsonApiObject;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
@@ -52,6 +53,7 @@ class JsonApiViewListener
     protected function handleResource(ResourceObject $resource): Response
     {
         $document = new SingleResourceDocument($resource);
+        $document->setJsonApi(new JsonApiObject());
 
         return $this->createResponse($document);
     }
@@ -65,6 +67,7 @@ class JsonApiViewListener
     protected function handleError(ErrorObject $error): Response
     {
         $document = new NoDataDocument();
+        $document->setJsonApi(new JsonApiObject());
         $document->addError($error);
 
         return $this->createResponse($document);

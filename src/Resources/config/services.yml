@@ -81,6 +81,5 @@ services:
 
     mrtn_json_api.kernel_view.listener:
         class: '%mrtn_json_api.kernel_view.listener.class%'
-        public: false
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.view', method: 'onKernelView' }

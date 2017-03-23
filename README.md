@@ -16,7 +16,7 @@ Through composer:
 The bundle provides a number of features:
 
 ### JsonAPI-document parameter converter
-The converter allows to receive a JsonAPI-document as an argument of method inside of your controller.
+The converter allows to receive an instance of JsonAPI-document as an argument of method inside of your controller.
 
 ```php
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
@@ -59,3 +59,71 @@ class UserController
 ```
 
 More information about document you can find inside of [JsonApi repository](https://github.com/mikemirten/JsonApi).
+
+### JsonAPI-document response
+The bundle allows to return an istance of JsonAPI-document as a return. In this case it will be automaticaly serialized and used as a response's body.
+
+```php
+use Mikemirten\Component\JsonApi\Document\ResourceObject;
+use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+
+class UserController
+{
+    public function getAction()
+    {
+        // ...
+        
+        $resource = new ResourceObject();
+        
+        $resource->setAttribute('firstName', $user->getFirstName());
+        $resource->setAttribute('lastName', $user->getLastName());
+    
+        $document = new SingleResourceDocument(resource);
+        $document->setMetadataAttribute('requestId', $requestId);
+        
+        return $document;
+    }
+}
+```
+
+If you don't need to interact with document itself but only with resource, it is possible to return an instance of resource.
+
+```php
+use Mikemirten\Component\JsonApi\Document\ResourceObject;
+
+class UserController
+{
+    public function getAction()
+    {
+        // ...
+        
+        $resource = new ResourceObject();
+        
+        $resource->setAttribute('firstName', $user->getFirstName());
+        $resource->setAttribute('lastName', $user->getLastName());
+        
+        return $resource;
+    }
+}
+```
+
+Also there is a "shortcut" to return single error as a part of document.
+
+```php
+use Mikemirten\Component\JsonApi\Document\ErrorObject;
+
+class UserController
+{
+    public function getAction()
+    {
+        // ...
+        
+        $error = new ErrorObject();
+        
+        $error->setId('E345');
+        $error->setTitle('Out of range');
+        
+        return $error;
+    }
+}
+```

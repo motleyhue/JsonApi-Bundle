@@ -58,7 +58,7 @@ class JsonApiViewListenerTest extends TestCase
         $listener->onKernelView($event);
     }
 
-    public function _testError()
+    public function testError()
     {
         $error = $this->createMock(ErrorObject::class);
 

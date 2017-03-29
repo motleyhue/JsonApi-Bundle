@@ -2,16 +2,15 @@
 
 namespace Mikemirten\Bundle\JsonApiBundle;
 
-use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
-use Mikemirten\Component\JsonApi\Document\AbstractDocument;
+use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use PHPUnit\Framework\TestCase;
 
-class JsonApiDocumentViewTest extends TestCase
+class JsonApiIteratorViewTest extends TestCase
 {
     public function testBasics()
     {
-        $document = $this->createMock(AbstractDocument::class);
-        $view     = new JsonApiDocumentView($document, 555, ['test' => 'qwerty']);
+        $iterator = new \ArrayIterator([]);
+        $view     = new JsonApiIteratorView($iterator, 555, ['test' => 'qwerty']);
 
         $this->assertSame(555, $view->getStatusCode());
         $this->assertSame(['test' => 'qwerty'], $view->getHeaders());
@@ -19,9 +18,10 @@ class JsonApiDocumentViewTest extends TestCase
 
     public function testDocument()
     {
-        $document = $this->createMock(AbstractDocument::class);
-        $view     = new JsonApiDocumentView($document);
+        $iterator = new \ArrayIterator([]);
+        $view     = new JsonApiIteratorView($iterator);
 
-        $this->assertSame($document, $view->getDocument());
+        $this->assertInstanceOf('IteratorAggregate', $view);
+        $this->assertSame($iterator, $view->getIterator());
     }
 }

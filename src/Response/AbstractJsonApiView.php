@@ -3,44 +3,18 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\Response;
 
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterface;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesContainer;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsAwareInterface;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsContainer;
+
 /**
  * Abstract Json API view supposed to get handled and converted into a response
  *
  * @package Mikemirten\Bundle\JsonApiBundle\Response
  */
-abstract class AbstractJsonApiView
+abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, IncludedObjectsAwareInterface
 {
-    /**
-     * Status code
-     *
-     * @var int
-     */
-    protected $status = 200;
-
-    /**
-     * Response headers
-     *
-     * @var array
-     */
-    protected $headers = [];
-
-    /**
-     * Get status code
-     *
-     * @return int
-     */
-    public function getStatus(): int
-    {
-        return $this->status;
-    }
-
-    /**
-     * Get response headers
-     *
-     * @return array
-     */
-    public function getHeaders(): array
-    {
-        return $this->headers;
-    }
+    use HttpAttributesContainer;
+    use IncludedObjectsContainer;
 }

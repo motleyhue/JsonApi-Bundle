@@ -3,7 +3,6 @@
 namespace Mikemirten\Bundle\JsonApiBundle\EventListener;
 
 use Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectHandlerInterface;
-use Mikemirten\Bundle\JsonApiBundle\Response\AbstractJsonApiView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
@@ -84,7 +83,7 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getDocument')
             ->willReturn($document);
 
-        $view->method('getStatus')
+        $view->method('getStatusCode')
             ->willReturn(200);
 
         $event = $this->createEvent($view, '{"data":"qwerty"}');
@@ -95,7 +94,8 @@ class JsonApiViewListenerTest extends TestCase
 
     public function testObjectView()
     {
-        $object = new \stdClass();
+        $object  = new \stdClass();
+        $object2 = new \stdClass();
 
         $view = $this->createMock(JsonApiObjectView::class);
 
@@ -103,27 +103,16 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getObject')
             ->willReturn($object);
 
-        $view->method('getStatus')
+        $view->method('getStatusCode')
             ->willReturn(200);
 
-        $resource = $this->createMock(ResourceObject::class);
+        $view->expects($this->once())
+            ->method('getIncludedObjects')
+            ->willReturn([$object2]);
 
-        $resource->method('toArray')
-            ->willReturn(['test' => 'qwerty']);
+        $handler = $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
 
-        $handler = $this->createMock(ObjectHandlerInterface::class);
-
-        $handler->expects($this->once())
-            ->method('supports')
-            ->with('stdClass')
-            ->willReturn(true);
-
-        $handler->expects($this->once())
-            ->method('handle')
-            ->with($object)
-            ->willReturn($resource);
-
-        $event = $this->createEvent($view, '{"jsonapi":{"version":"1.0"},"data":{"test":"qwerty"}}');
+        $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":{"test":"qwerty"}}');
 
         $listener = new JsonApiViewListener();
         $listener->addObjectHandler($handler);
@@ -142,7 +131,7 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getObject')
             ->willReturn(new \stdClass());
 
-        $view->method('getStatus')
+        $view->method('getStatusCode')
             ->willReturn(200);
 
         $event = $this->createMock(GetResponseForControllerResultEvent::class);
@@ -158,6 +147,7 @@ class JsonApiViewListenerTest extends TestCase
     public function testIteratorView()
     {
         $object   = new \stdClass();
+        $object2  = new \stdClass();
         $iterator = new \ArrayIterator([$object]);
 
         $view = $this->createMock(JsonApiIteratorView::class);
@@ -166,27 +156,16 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getIterator')
             ->willReturn($iterator);
 
-        $view->method('getStatus')
+        $view->method('getStatusCode')
             ->willReturn(200);
 
-        $resource = $this->createMock(ResourceObject::class);
+        $view->expects($this->once())
+            ->method('getIncludedObjects')
+            ->willReturn([$object2]);
 
-        $resource->method('toArray')
-            ->willReturn(['test' => 'qwerty']);
+        $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
 
-        $handler = $this->createMock(ObjectHandlerInterface::class);
-
-        $handler->expects($this->once())
-            ->method('supports')
-            ->with('stdClass')
-            ->willReturn(true);
-
-        $handler->expects($this->once())
-            ->method('handle')
-            ->with($object)
-            ->willReturn($resource);
-
-        $event = $this->createEvent($view, '{"jsonapi":{"version":"1.0"},"data":[{"test":"qwerty"}]}');
+        $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":[{"test":"qwerty"}]}');
 
         $listener = new JsonApiViewListener();
         $listener->addObjectHandler($handler);
@@ -195,25 +174,42 @@ class JsonApiViewListenerTest extends TestCase
     }
 
     /**
-     * @expectedException \LogicException
+     * Create mock of object-handler
+     *
+     * @param  string $type         Common for all objects
+     * @param  array  $objects      List of objects expected to get handled
+     * @param  array  $resourceData Common for all objects
+     * @return ObjectHandlerInterface
      */
-    public function testUnsupportedView()
+    protected function createObjectHandler(string $type, array $objects, array $resourceData): ObjectHandlerInterface
     {
-        $view  = $this->createMock(AbstractJsonApiView::class);
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
+        $resource = $this->createMock(ResourceObject::class);
 
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
+        $resource->method('toArray')
+            ->willReturn($resourceData);
 
-        $listener = new JsonApiViewListener();
-        $listener->onKernelView($event);
+        $handler = $this->createMock(ObjectHandlerInterface::class);
+
+        $handler->expects($this->once())
+            ->method('supports')
+            ->with($type)
+            ->willReturn(true);
+
+        foreach ($objects as $offset => $object)
+        {
+            $handler->expects($this->at($offset + 1))
+                ->method('handle')
+                ->with($object)
+                ->willReturn($resource);
+        }
+
+        return $handler;
     }
 
     /**
      * Create mock of event
      *
-     * @param  $result
+     * @param  mixed  $result
      * @param  string $expectedContent
      * @return GetResponseForControllerResultEvent
      */

@@ -27,9 +27,9 @@ class JsonApiObjectView extends AbstractJsonApiView
      */
     public function __construct($object, int $status = 200, array $headers = [])
     {
-        $this->object  = $object;
-        $this->status  = $status;
-        $this->headers = $headers;
+        $this->object     = $object;
+        $this->statusCode = $status;
+        $this->headers    = $headers;
     }
 
     /**

@@ -5,6 +5,9 @@ namespace Mikemirten\Bundle\JsonApiBundle\EventListener;
 
 use Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectHandlerInterface;
 use Mikemirten\Bundle\JsonApiBundle\Response\AbstractJsonApiView;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterface;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsAwareInterface;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsContainer;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
@@ -59,47 +62,51 @@ class JsonApiViewListener
     {
         $result = $event->getControllerResult();
 
-        if ($result instanceof AbstractJsonApiView) {
-            $event->setResponse($this->handleView($result));
+        if (! is_object($result)) {
             return;
         }
 
-        if ($result instanceof AbstractDocument) {
-            $event->setResponse($this->createResponse($result));
-            return;
-        }
+        $response = $this->handleResult($result);
 
-        if ($result instanceof ResourceObject) {
-            $event->setResponse($this->handleResource($result));
-            return;
-        }
-
-        if ($result instanceof ErrorObject) {
-            $event->setResponse($this->handleError($result));
+        if ($response !== null) {
+            $event->setResponse($response);
         }
     }
 
     /**
-     * Handle Json API view
+     * Handle result
      *
-     * @param  AbstractJsonApiView $view
-     * @return Response
+     * @param  mixed $result
+     * @return Response | null
      */
-    protected function handleView(AbstractJsonApiView $view): Response
+    public function handleResult($result)
     {
-        if ($view instanceof JsonApiDocumentView) {
-            return $this->handleDocumentView($view);
-        }
+        switch (true)
+        {
+            // Json API document
+            case ($result instanceof AbstractDocument):
+                return $this->createResponse($result);
 
-        if ($view instanceof JsonApiObjectView) {
-            return $this->handleObjectView($view);
-        }
+            // Json API document wrapped into view
+            case ($result instanceof JsonApiDocumentView):
+                return $this->handleDocumentView($result);
 
-        if ($view instanceof JsonApiIteratorView) {
-            return $this->handleIteratorView($view);
-        }
+            // An object for serialization wrapped into view
+            case ($result instanceof JsonApiObjectView):
+                return $this->handleObjectView($result);
 
-        throw new \LogicException(sprintf('Unsupported extension "%s" of JsonAPI View given.', get_class($view)));
+            // An iterator of objects for serialization wrapped into view
+            case ($result instanceof JsonApiIteratorView):
+                return $this->handleIteratorView($result);
+
+            // A resource-object of Json API document
+            case ($result instanceof ResourceObject):
+                return $this->handleResource($result);
+
+            // An error-object of Json API document
+            case ($result instanceof ErrorObject):
+                return $this->handleError($result);
+        }
     }
 
     /**
@@ -113,7 +120,7 @@ class JsonApiViewListener
         $document = $view->getDocument();
         $response = $this->createResponse($document);
 
-        $this->handleResponseExtras($response, $view);
+        $this->handleHttpAttributes($response, $view);
         return $response;
     }
 
@@ -126,10 +133,31 @@ class JsonApiViewListener
     protected function handleObjectView(JsonApiObjectView $view): Response
     {
         $resource = $this->handleObject($view->getObject());
-        $response = $this->handleResource($resource);
 
-        $this->handleResponseExtras($response, $view);
+        $document = new SingleResourceDocument($resource);
+        $document->setJsonApi(new JsonApiObject());
+
+        $this->handleIncludedResources($document, $view);
+
+        $response = $this->createResponse($document);
+
+        $this->handleHttpAttributes($response, $view);
         return $response;
+    }
+
+    /**
+     * Handle supposed to be included to document resources
+     *
+     * @param AbstractDocument              $document
+     * @param IncludedObjectsAwareInterface $view
+     */
+    protected function handleIncludedResources(AbstractDocument $document, IncludedObjectsAwareInterface $view)
+    {
+        foreach ($view->getIncludedObjects() as $object)
+        {
+            $resource = $this->handleObject($object);
+            $document->addIncludedResource($resource);
+        }
     }
 
     /**
@@ -146,25 +174,26 @@ class JsonApiViewListener
         foreach ($view as $object)
         {
             $resource = $this->handleObject($object);
-
             $document->addResource($resource);
         }
 
+        $this->handleIncludedResources($document, $view);
+
         $response = $this->createResponse($document);
 
-        $this->handleResponseExtras($response, $view);
+        $this->handleHttpAttributes($response, $view);
         return $response;
     }
 
     /**
      * Handle response data besides of the document itself
      * 
-     * @param Response            $response
-     * @param AbstractJsonApiView $view
+     * @param Response                     $response
+     * @param HttpAttributesAwareInterface $view
      */
-    protected function handleResponseExtras(Response $response, AbstractJsonApiView $view)
+    protected function handleHttpAttributes(Response $response, HttpAttributesAwareInterface $view)
     {
-        $response->setStatusCode($view->getStatus());
+        $response->setStatusCode($view->getStatusCode());
         $response->headers->add($view->getHeaders());
     }
 
@@ -176,6 +205,10 @@ class JsonApiViewListener
      */
     protected function handleObject($object): ResourceObject
     {
+        if ($object instanceof ResourceObject) {
+            return $object;
+        }
+
         $class = get_class($object);
 
         return $this->getHandler($class)->handle($object);

@@ -12,7 +12,7 @@ class JsonApiIteratorViewTest extends TestCase
         $iterator = new \ArrayIterator([]);
         $view     = new JsonApiIteratorView($iterator, 555, ['test' => 'qwerty']);
 
-        $this->assertSame(555, $view->getStatus());
+        $this->assertSame(555, $view->getStatusCode());
         $this->assertSame(['test' => 'qwerty'], $view->getHeaders());
     }
 

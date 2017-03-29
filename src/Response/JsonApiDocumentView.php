@@ -3,6 +3,8 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\Response;
 
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterface;
+use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesContainer;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 
 /**
@@ -11,8 +13,10 @@ use Mikemirten\Component\JsonApi\Document\AbstractDocument;
  *
  * @package Mikemirten\Bundle\JsonApiBundle\Response
  */
-class JsonApiDocumentView extends AbstractJsonApiView
+class JsonApiDocumentView implements HttpAttributesAwareInterface
 {
+    use HttpAttributesContainer;
+
     /**
      * Json API document
      *
@@ -29,9 +33,9 @@ class JsonApiDocumentView extends AbstractJsonApiView
      */
     public function __construct(AbstractDocument $document, int $status = 200, array $headers = [])
     {
-        $this->document = $document;
-        $this->status   = $status;
-        $this->headers  = $headers;
+        $this->document   = $document;
+        $this->statusCode = $status;
+        $this->headers    = $headers;
     }
 
     /**

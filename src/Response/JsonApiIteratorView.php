@@ -27,9 +27,9 @@ class JsonApiIteratorView extends AbstractJsonApiView implements \IteratorAggreg
      */
     public function __construct(\Traversable $iterator, int $status = 200, array $headers = [])
     {
-        $this->iterator = $iterator;
-        $this->status   = $status;
-        $this->headers  = $headers;
+        $this->iterator   = $iterator;
+        $this->statusCode = $status;
+        $this->headers    = $headers;
     }
 
     /**

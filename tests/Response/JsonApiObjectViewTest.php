@@ -13,7 +13,7 @@ class JsonApiObjectViewTest extends TestCase
         $object = new \stdClass();
         $view   = new JsonApiObjectView($object, 555, ['test' => 'qwerty']);
 
-        $this->assertSame(555, $view->getStatus());
+        $this->assertSame(555, $view->getStatusCode());
         $this->assertSame(['test' => 'qwerty'], $view->getHeaders());
     }
 

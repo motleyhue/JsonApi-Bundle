@@ -16,6 +16,14 @@ parameters:
 
     mrtn_json_api.kernel_view.listener.class: 'Mikemirten\Bundle\JsonApiBundle\EventListener\JsonApiViewListener'
 
+    mrtn_json_api.object_mapper.class: 'Mikemirten\Component\JsonApi\Mapper\ObjectMapper'
+
+    mrtn_json_api.object_mapper.handler.rigid_identifier.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\IdentifierHandler\RigidIdentifierHandler'
+    mrtn_json_api.object_mapper.handler.class_based_type.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\TypeHandler\ClassBasedTypeHandler'
+    mrtn_json_api.object_mapper.handler.jms_array_transformer.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\JmsArrayTransformerHandler'
+
+    mrtn_json_api.view_listener.object_handler.object_mapper.class: 'Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectMapperHandler'
+
 services:
     mrtn_json_api.document_hydrator:
         class: '%mrtn_json_api.document_hydrator.class%'
@@ -83,3 +91,31 @@ services:
         class: '%mrtn_json_api.kernel_view.listener.class%'
         tags:
             - { name: 'kernel.event_listener', event: 'kernel.view', method: 'onKernelView' }
+
+    mrtn_json_api.object_mapper:
+        class: '%mrtn_json_api.object_mapper.class%'
+        arguments:
+            - '@mrtn_json_api.object_mapper.handler.rigid_identifier'
+            - '@mrtn_json_api.object_mapper.handler.class_based_type'
+
+    mrtn_json_api.object_mapper.handler.rigid_identifier:
+        class: '%mrtn_json_api.object_mapper.handler.rigid_identifier.class%'
+        arguments: ['getId']
+
+    mrtn_json_api.object_mapper.handler.class_based_type:
+        class: '%mrtn_json_api.object_mapper.handler.class_based_type.class%'
+        arguments: [true, '.']
+
+    mrtn_json_api.object_mapper.handler.jms_array_transformer:
+        class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
+        arguments:
+            - '@jms_serializer'
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
+    mrtn_json_api.view_listener.object_handler.mapper:
+        class: '%mrtn_json_api.view_listener.object_handler.object_mapper.class%'
+        arguments:
+            - '@mrtn_json_api.object_mapper'
+        tags:
+            - { name: 'mrtn_json_api.view_listener.object_handler' }

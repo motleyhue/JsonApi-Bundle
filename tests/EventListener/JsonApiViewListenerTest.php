@@ -115,7 +115,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $handler->expects($this->once())
             ->method('supports')
-            ->willReturn(['stdClass']);
+            ->with('stdClass')
+            ->willReturn(true);
 
         $handler->expects($this->once())
             ->method('handle')
@@ -177,7 +178,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $handler->expects($this->once())
             ->method('supports')
-            ->willReturn(['stdClass']);
+            ->with('stdClass')
+            ->willReturn(true);
 
         $handler->expects($this->once())
             ->method('handle')

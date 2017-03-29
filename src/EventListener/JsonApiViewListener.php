@@ -34,16 +34,20 @@ class JsonApiViewListener
     protected $objectHandlers = [];
 
     /**
+     * Object-handlers resolved by supported class
+     *
+     * @var ObjectHandlerInterface[]
+     */
+    protected $resolvedObjectHandlers = [];
+
+    /**
      * Add object-handler
      *
      * @param ObjectHandlerInterface $handler
      */
     public function addObjectHandler(ObjectHandlerInterface $handler)
     {
-        foreach ($handler->supports() as $class)
-        {
-            $this->objectHandlers[$class] = $handler;
-        }
+        $this->objectHandlers[] = $handler;
     }
 
     /**
@@ -173,12 +177,31 @@ class JsonApiViewListener
     protected function handleObject($object): ResourceObject
     {
         $class = get_class($object);
-        
-        if (isset($this->objectHandlers[$class])) {
-            return $this->objectHandlers[$class]->handle($object);
+
+        return $this->getHandler($class)->handle($object);
+    }
+
+    /**
+     * Get handler supports given class
+     *
+     * @param  string $class
+     * @return ObjectHandlerInterface
+     * @throws \LogicException
+     */
+    protected function getHandler(string $class): ObjectHandlerInterface
+    {
+        if (isset($this->resolvedObjectHandlers[$class])) {
+            return $this->resolvedObjectHandlers[$class];
         }
 
-        throw new \LogicException(sprintf('Unsupported instance of "%s" given.', $class));
+        foreach ($this->objectHandlers as $handler) {
+            if ($handler->supports($class)) {
+                $this->resolvedObjectHandlers[$class] = $handler;
+                return $handler;
+            }
+        }
+
+        throw new \LogicException(sprintf('Class "%s" is not supported by known handles.', $class));
     }
 
     /**

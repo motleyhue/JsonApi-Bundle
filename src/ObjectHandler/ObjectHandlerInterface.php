@@ -21,9 +21,10 @@ interface ObjectHandlerInterface
     public function handle($object): ResourceObject;
 
     /**
-     * Returns a list of supported classes
+     * Resolve if provided class is supported by handler
      *
-     * @return array
+     * @param  string $class
+     * @return bool
      */
-    public function supports(): array;
+    public function supports(string $class): bool;
 }

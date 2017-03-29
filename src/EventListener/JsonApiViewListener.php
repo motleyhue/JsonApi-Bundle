@@ -79,33 +79,36 @@ class JsonApiViewListener
      * @param  mixed $result
      * @return Response | null
      */
-    public function handleResult($result)
+    protected function handleResult($result)
     {
-        switch (true)
-        {
-            // Json API document
-            case ($result instanceof AbstractDocument):
-                return $this->createResponse($result);
+        // Json API document
+        if ($result instanceof AbstractDocument) {
+            return $this->createResponse($result);
+        }
 
-            // Json API document wrapped into view
-            case ($result instanceof JsonApiDocumentView):
-                return $this->handleDocumentView($result);
+        // Json API document wrapped into view
+        if ($result instanceof JsonApiDocumentView) {
+            return $this->handleDocumentView($result);
+        }
 
-            // An object for serialization wrapped into view
-            case ($result instanceof JsonApiObjectView):
-                return $this->handleObjectView($result);
+        // An object for serialization wrapped into view
+        if ($result instanceof JsonApiObjectView) {
+            return $this->handleObjectView($result);
+        }
 
-            // An iterator of objects for serialization wrapped into view
-            case ($result instanceof JsonApiIteratorView):
-                return $this->handleIteratorView($result);
+        // An iterator of objects for serialization wrapped into view
+        if ($result instanceof JsonApiIteratorView) {
+            return $this->handleIteratorView($result);
+        }
 
-            // A resource-object of Json API document
-            case ($result instanceof ResourceObject):
-                return $this->handleResource($result);
+        // A resource-object of Json API document
+        if ($result instanceof ResourceObject) {
+            return $this->handleResource($result);
+        }
 
-            // An error-object of Json API document
-            case ($result instanceof ErrorObject):
-                return $this->handleError($result);
+        // An error-object of Json API document
+        if ($result instanceof ErrorObject) {
+            return $this->handleError($result);
         }
     }
 

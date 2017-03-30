@@ -86,7 +86,7 @@ class UserController
     {
         // ...
         
-        $resource = new ResourceObject();
+        $resource = new ResourceObject('3856', 'User');
         
         $resource->setAttribute('firstName', $user->getFirstName());
         $resource->setAttribute('lastName', $user->getLastName());
@@ -98,8 +98,23 @@ class UserController
     }
 }
 ```
+```json
+{
+    "data": {
+        "id": "3856",
+        "type": "User",
+        "attributes": {
+            "firstName": "John",
+            "lastName": "Doe"
+        }
+    },
+    "meta": {
+        "requestId": "12345"
+    }
+}
+```
 
-If you don't need to interact with document itself but only with resource, it is possible to return an instance of resource.
+If you don't need to interact with document itself but only with a resource, it is possible to return an instance of resource.
 
 ```php
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
@@ -110,7 +125,7 @@ class UserController
     {
         // ...
         
-        $resource = new ResourceObject();
+        $resource = new ResourceObject('3856', 'User');
         
         $resource->setAttribute('firstName', $user->getFirstName());
         $resource->setAttribute('lastName', $user->getLastName());
@@ -119,8 +134,20 @@ class UserController
     }
 }
 ```
+```json
+{
+    "data": {
+        "id": "3856",
+        "type": "User",
+        "attributes": {
+            "firstName": "John",
+            "lastName": "Doe"
+        }
+    }
+}
+```
 
-Also there is a "shortcut" to return a single error as a part of document.
+Also there is a "shortcut" to return a single error as the only part of document.
 
 ```php
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
@@ -138,6 +165,16 @@ class UserController
         
         return $error;
     }
+}
+```
+```json
+{
+    "errors": [
+        {
+            "id": "E345",
+            "title": "Out of range"
+        }
+    ]
 }
 ```
 

@@ -53,6 +53,30 @@ trait HttpAttributesContainer
     }
 
     /**
+     * Set headers
+     *
+     * @param array $headers
+     */
+    public function setHeaders(array $headers)
+    {
+        foreach ($headers as $name => $value)
+        {
+            $this->headers[$name] = $value;
+        }
+    }
+
+    /**
+     * Has header ?
+     *
+     * @param  string $name
+     * @return bool
+     */
+    public function hasHeader(string $name): bool
+    {
+        return isset($this->headers[$name]);
+    }
+
+    /**
      * Get response headers
      *
      * @return array

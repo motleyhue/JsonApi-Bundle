@@ -15,7 +15,7 @@ trait IncludedObjectsContainer
      *
      * @var array
      */
-    protected $includedObjects;
+    protected $includedObjects = [];
 
     /**
      * Add included object to document
@@ -25,6 +25,19 @@ trait IncludedObjectsContainer
     public function addIncludedObject($object)
     {
         $this->includedObjects[] = $object;
+    }
+
+    /**
+     * Add an iterator contains objects should be included
+     *
+     * @param \Traversable $iterator
+     */
+    public function addIncludedIterator(\Traversable $iterator)
+    {
+        foreach ($iterator as $object)
+        {
+            $this->includedObjects[] = $object;
+        }
     }
 
     /**

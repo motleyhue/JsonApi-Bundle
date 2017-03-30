@@ -25,8 +25,30 @@ class HttpAttributesContainerTest extends TestCase
             use HttpAttributesContainer;
         };
 
+        $this->assertFalse($attributesContainer->hasHeader('test'));
 
         $attributesContainer->setHeader('test', 'qwerty');
+
+        $this->assertTrue($attributesContainer->hasHeader('test'));
+        $this->assertSame(['test' => 'qwerty'], $attributesContainer->getHeaders());
+    }
+
+    public function testEmptyHeaders()
+    {
+        $attributesContainer = new class {
+            use HttpAttributesContainer;
+        };
+
+        $this->assertSame([], $attributesContainer->getHeaders());
+    }
+
+    public function testSetHeaders()
+    {
+        $attributesContainer = new class {
+            use HttpAttributesContainer;
+        };
+
+        $attributesContainer->setHeaders(['test' => 'qwerty']);
 
         $this->assertSame(['test' => 'qwerty'], $attributesContainer->getHeaders());
     }

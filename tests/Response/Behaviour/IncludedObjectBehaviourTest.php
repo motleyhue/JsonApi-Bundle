@@ -19,4 +19,27 @@ class IncludedObjectBehaviourTest extends TestCase
 
         $this->assertSame([$object], $includedContainer->getIncludedObjects());
     }
+
+    public function testEmptyIncluded()
+    {
+        $includedContainer = new class {
+            use IncludedObjectsContainer;
+        };
+
+        $this->assertSame([], $includedContainer->getIncludedObjects());
+    }
+
+    public function testIncludedIterator()
+    {
+        $includedContainer = new class {
+            use IncludedObjectsContainer;
+        };
+
+        $object   = new \stdClass();
+        $iterator = new \ArrayIterator([$object]);
+
+        $includedContainer->addIncludedIterator($iterator);
+
+        $this->assertSame([$object], $includedContainer->getIncludedObjects());
+    }
 }

@@ -76,6 +76,7 @@ services:
         class: '%mrtn_json_api.http_client.class%'
         arguments:
             - '@mrtn_json_api.http_client.adapter.guzzle'
+            - '@mrtn_json_api.document_hydrator'
 
     mrtn_json_api.http_client.adapter.guzzle:
         class: '%mrtn_json_api.http_client.adapter.guzzle.class%'
@@ -100,14 +101,17 @@ services:
 
     mrtn_json_api.object_mapper.handler.rigid_identifier:
         class: '%mrtn_json_api.object_mapper.handler.rigid_identifier.class%'
+        public: false
         arguments: ['getId']
 
     mrtn_json_api.object_mapper.handler.class_based_type:
         class: '%mrtn_json_api.object_mapper.handler.class_based_type.class%'
+        public: false
         arguments: [true, '.']
 
     mrtn_json_api.object_mapper.handler.jms_array_transformer:
         class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
+        public: false
         arguments:
             - '@jms_serializer'
         tags:
@@ -115,6 +119,7 @@ services:
 
     mrtn_json_api.view_listener.object_handler.mapper:
         class: '%mrtn_json_api.view_listener.object_handler.object_mapper.class%'
+        public: false
         arguments:
             - '@mrtn_json_api.object_mapper'
         tags:

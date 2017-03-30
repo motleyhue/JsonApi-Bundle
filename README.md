@@ -12,6 +12,20 @@ Through composer:
 
 ```composer require mikemirten/json-api-bundle```
 
+Add the bundle to kernel of your application:
+```php
+public function registerBundles()
+{
+    $bundles = [
+        // ...
+        new Mikemirten\Bundle\JsonApiBundle\JsonApiBundle()
+        // ...
+    ];
+
+    return $bundles;
+}
+```
+
 ## How to use
 The bundle provides a number of features:
 
@@ -36,7 +50,6 @@ class UserController
 ```
 
 In a case of document provided through request contains different structure (a collection of resources or is empty data-document) a BadRequestHttpException exception will be thrown. If you're expectiong more than one type of document, use AbstractDocument type:
-
 
 ```php
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
@@ -73,7 +86,7 @@ class UserController
     {
         // ...
         
-        $resource = new ResourceObject();
+        $resource = new ResourceObject('3856', 'User');
         
         $resource->setAttribute('firstName', $user->getFirstName());
         $resource->setAttribute('lastName', $user->getLastName());
@@ -85,8 +98,23 @@ class UserController
     }
 }
 ```
+```json
+{
+    "data": {
+        "id": "3856",
+        "type": "User",
+        "attributes": {
+            "firstName": "John",
+            "lastName": "Doe"
+        }
+    },
+    "meta": {
+        "requestId": "12345"
+    }
+}
+```
 
-If you don't need to interact with document itself but only with resource, it is possible to return an instance of resource.
+If you don't need to interact with document itself but only with a resource, it is possible to return an instance of resource.
 
 ```php
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
@@ -97,7 +125,7 @@ class UserController
     {
         // ...
         
-        $resource = new ResourceObject();
+        $resource = new ResourceObject('3856', 'User');
         
         $resource->setAttribute('firstName', $user->getFirstName());
         $resource->setAttribute('lastName', $user->getLastName());
@@ -106,8 +134,20 @@ class UserController
     }
 }
 ```
+```json
+{
+    "data": {
+        "id": "3856",
+        "type": "User",
+        "attributes": {
+            "firstName": "John",
+            "lastName": "Doe"
+        }
+    }
+}
+```
 
-Also there is a "shortcut" to return single error as a part of document.
+Also there is a "shortcut" to return a single error as the only part of document.
 
 ```php
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
@@ -124,6 +164,29 @@ class UserController
         $error->setTitle('Out of range');
         
         return $error;
+    }
+}
+```
+```json
+{
+    "errors": [
+        {
+            "id": "E345",
+            "title": "Out of range"
+        }
+    ]
+}
+```
+
+An instance of the same document implementation works for both: request and response purposes, so thechnically, it is possible to return just received document:
+```php
+use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+
+class UserController
+{
+    public function postAction(SingleResourceDocument $document)
+    {
+        return $document;
     }
 }
 ```

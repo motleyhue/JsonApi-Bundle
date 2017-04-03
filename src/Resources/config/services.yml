@@ -21,8 +21,13 @@ parameters:
     mrtn_json_api.object_mapper.handler.rigid_identifier.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\IdentifierHandler\RigidIdentifierHandler'
     mrtn_json_api.object_mapper.handler.class_based_type.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\TypeHandler\ClassBasedTypeHandler'
     mrtn_json_api.object_mapper.handler.jms_array_transformer.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\JmsArrayTransformerHandler'
+    mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
 
     mrtn_json_api.view_listener.object_handler.object_mapper.class: 'Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectMapperHandler'
+
+    mrtn_json_api.annotation_reader.class: 'Doctrine\Common\Annotations\AnnotationReader'
+
+    mrtn_json_api.object_mapper.definition_provider.annotation.class: 'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationDefinitionProvider'
 
 services:
     mrtn_json_api.document_hydrator:
@@ -96,6 +101,7 @@ services:
     mrtn_json_api.object_mapper:
         class: '%mrtn_json_api.object_mapper.class%'
         arguments:
+            - '@mrtn_json_api.object_mapper.definition_provider.annotation'
             - '@mrtn_json_api.object_mapper.handler.rigid_identifier'
             - '@mrtn_json_api.object_mapper.handler.class_based_type'
 
@@ -117,6 +123,12 @@ services:
         tags:
             - { name: 'mrtn_json_api.object_mapper.handler' }
 
+    mrtn_json_api.object_mapper.handler.relationship:
+        class: '%mrtn_json_api.object_mapper.handler.relationship.class%'
+        public: false
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
     mrtn_json_api.view_listener.object_handler.mapper:
         class: '%mrtn_json_api.view_listener.object_handler.object_mapper.class%'
         public: false
@@ -124,3 +136,13 @@ services:
             - '@mrtn_json_api.object_mapper'
         tags:
             - { name: 'mrtn_json_api.view_listener.object_handler' }
+
+    mrtn_json_api.annotation_reader:
+        class: '%mrtn_json_api.annotation_reader.class%'
+        public: false
+
+    mrtn_json_api.object_mapper.definition_provider.annotation:
+        class: '%mrtn_json_api.object_mapper.definition_provider.annotation.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.annotation_reader'

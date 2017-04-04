@@ -110,7 +110,7 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getIncludedObjects')
             ->willReturn([$object2]);
 
-        $handler = $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
+        $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
 
         $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":{"test":"qwerty"}}');
 
@@ -171,6 +171,79 @@ class JsonApiViewListenerTest extends TestCase
         $listener->addObjectHandler($handler);
 
         $listener->onKernelView($event);
+    }
+
+    public function testPostResourceCallback()
+    {
+        $object = new ResourceObject('123', 'Qwerty');
+
+        $view = $this->createMock(JsonApiObjectView::class);
+
+        $view->method('getObject')
+            ->willReturn($object);
+
+        $view->method('getStatusCode')
+            ->willReturn(200);
+
+        $view->method('hasPostResourceCallback')
+            ->willReturn(true);
+
+        $called = false;
+
+        $view->expects($this->once())
+            ->method('getPostResourceCallback')
+            ->willReturn(function($resource) use(&$called) {
+                $this->assertInstanceOf(ResourceObject::class, $resource);
+                $called = true;
+            });
+
+        $event = $this->createMock(GetResponseForControllerResultEvent::class);
+
+        $event->expects($this->once())
+            ->method('getControllerResult')
+            ->willReturn($view);
+
+        $listener = new JsonApiViewListener();
+        $listener->onKernelView($event);
+
+        $this->assertTrue($called);
+    }
+
+    public function testPostResourceCallbackWithIterator()
+    {
+        $object   = new ResourceObject('123', 'Qwerty');
+        $iterator = new \ArrayIterator([$object]);
+
+        $view = $this->createMock(JsonApiIteratorView::class);
+
+        $view->method('getIterator')
+            ->willReturn($iterator);
+
+        $view->method('getStatusCode')
+            ->willReturn(200);
+
+        $view->method('hasPostResourceCallback')
+            ->willReturn(true);
+
+        $called = false;
+
+        $view->expects($this->once())
+            ->method('getPostResourceCallback')
+            ->willReturn(function($resource) use(&$called) {
+                $this->assertInstanceOf(ResourceObject::class, $resource);
+                $called = true;
+            });
+
+        $event = $this->createMock(GetResponseForControllerResultEvent::class);
+
+        $event->expects($this->once())
+            ->method('getControllerResult')
+            ->willReturn($view);
+
+        $listener = new JsonApiViewListener();
+        $listener->onKernelView($event);
+
+        $this->assertTrue($called);
     }
 
     /**

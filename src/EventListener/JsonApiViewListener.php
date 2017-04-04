@@ -136,6 +136,7 @@ class JsonApiViewListener
     protected function handleObjectView(JsonApiObjectView $view): Response
     {
         $resource = $this->handleObject($view->getObject());
+        $this->handlePostResourceCallback($view, $resource);
 
         $document = new SingleResourceDocument($resource);
         $document->setJsonApi(new JsonApiObject());
@@ -146,6 +147,20 @@ class JsonApiViewListener
 
         $this->handleHttpAttributes($response, $view);
         return $response;
+    }
+
+    /**
+     * Handle a callback after a resource-object has created.
+     *
+     * @param AbstractJsonApiView $view
+     * @param ResourceObject      $resource
+     */
+    protected function handlePostResourceCallback(AbstractJsonApiView $view, ResourceObject $resource)
+    {
+        if ($view->hasPostResourceCallback()) {
+            $callback = $view->getPostResourceCallback();
+            $callback($resource);
+        }
     }
 
     /**
@@ -177,6 +192,8 @@ class JsonApiViewListener
         foreach ($view as $object)
         {
             $resource = $this->handleObject($object);
+            $this->handlePostResourceCallback($view, $resource);
+
             $document->addResource($resource);
         }
 

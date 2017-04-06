@@ -13,6 +13,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 /**
  * @group   dependency-injection
@@ -38,6 +40,16 @@ class ConfigurationTest extends TestCase
         $builder->set(
             'jms_serializer',
             $this->createMock(Serializer::class)
+        );
+
+        $builder->set(
+            'router',
+            $this->createMock(RouterInterface::class)
+        );
+
+        $builder->set(
+            'property_accessor',
+            $this->createMock(PropertyAccessorInterface::class)
         );
 
         $builder->addCompilerPass(new DocumentHydratorCompilerPass());

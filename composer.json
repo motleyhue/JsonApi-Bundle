@@ -4,10 +4,11 @@
 
     "require": {
         "php": "^7.0",
-        "mikemirten/json-api": "^0.9",
+        "mikemirten/json-api": "^0.11",
         "sensio/framework-extra-bundle": "^3.0",
         "symfony/dependency-injection": "^3.0",
-        "symfony/yaml": "^3.0"
+        "symfony/yaml": "^3.0",
+        "symfony/property-access": "^3.0"
     },
 
     "require-dev": {

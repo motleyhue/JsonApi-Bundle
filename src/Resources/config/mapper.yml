@@ -1,0 +1,75 @@
+parameters:
+    mrtn_json_api.object_mapper.class: 'Mikemirten\Component\JsonApi\Mapper\ObjectMapper'
+
+    mrtn_json_api.object_mapper.handler.rigid_identifier.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\IdentifierHandler\RigidIdentifierHandler'
+    mrtn_json_api.object_mapper.handler.class_based_type.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\TypeHandler\ClassBasedTypeHandler'
+    mrtn_json_api.object_mapper.handler.jms_array_transformer.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\JmsArrayTransformerHandler'
+    mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
+    mrtn_json_api.object_mapper.handler.link.class:                  'Mikemirten\Component\JsonApi\Mapper\Handler\LinkHandler\LinkHandler'
+
+    mrtn_json_api.object_mapper.link_repository_provider.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider'
+
+    mrtn_json_api.object_mapper.property_accessor.symfony.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\PropertyAccessor\SymfonyPropertyAccessor'
+
+    mrtn_json_api.symfony_routing_link_repository.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\SymfonyUrlGeneratorRepository'
+
+services:
+    mrtn_json_api.object_mapper:
+        class: '%mrtn_json_api.object_mapper.class%'
+        arguments:
+            - '@mrtn_json_api.object_mapper.definition_provider.annotation'
+            - '@mrtn_json_api.object_mapper.handler.rigid_identifier'
+            - '@mrtn_json_api.object_mapper.handler.class_based_type'
+
+    mrtn_json_api.object_mapper.handler.rigid_identifier:
+        class: '%mrtn_json_api.object_mapper.handler.rigid_identifier.class%'
+        public: false
+        arguments: ['getId']
+
+    mrtn_json_api.object_mapper.handler.class_based_type:
+        class: '%mrtn_json_api.object_mapper.handler.class_based_type.class%'
+        public: false
+        arguments: [true, '.']
+
+    mrtn_json_api.object_mapper.handler.jms_array_transformer:
+        class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
+        public: false
+        arguments:
+            - '@jms_serializer'
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
+    mrtn_json_api.object_mapper.handler.link:
+        class: '%mrtn_json_api.object_mapper.handler.link.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.object_mapper.link_repository_provider'
+            - '@mrtn_json_api.object_mapper.property_accessor.symfony'
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
+    mrtn_json_api.object_mapper.handler.relationship:
+        class: '%mrtn_json_api.object_mapper.handler.relationship.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.object_mapper.handler.link'
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
+    mrtn_json_api.object_mapper.link_repository_provider:
+        class: '%mrtn_json_api.object_mapper.link_repository_provider.class%'
+        public: false
+
+    mrtn_json_api.object_mapper.property_accessor.symfony:
+        class: '%mrtn_json_api.object_mapper.property_accessor.symfony.class%'
+        public: false
+        arguments:
+            - '@property_accessor'
+
+    mrtn_json_api.symfony_routing_link_repository:
+        class: '%mrtn_json_api.symfony_routing_link_repository.class%'
+        public: false
+        arguments:
+            - '@router'
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.link_repository', alias: 'application' }

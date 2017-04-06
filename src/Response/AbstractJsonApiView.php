@@ -23,16 +23,23 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
      *
      * @var callable
      */
-    protected $postResourceCallback;
+    protected $resourceCallback;
+
+    /**
+     * Callback to call after a document has created.
+     *
+     * @var callable
+     */
+    protected $documentCallback;
 
     /**
      * Set a callback to call after a resource-object has created.
      *
      * @param callable $callback
      */
-    public function setPostResourceCallback(callable $callback)
+    public function setResourceCallback(callable $callback)
     {
-        $this->postResourceCallback = $callback;
+        $this->resourceCallback = $callback;
     }
 
     /**
@@ -40,9 +47,9 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
      *
      * @return bool
      */
-    public function hasPostResourceCallback(): bool
+    public function hasResourceCallback(): bool
     {
-        return $this->postResourceCallback !== null;
+        return $this->resourceCallback !== null;
     }
 
     /**
@@ -50,8 +57,38 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
      *
      * @return callable
      */
-    public function getPostResourceCallback(): callable
+    public function getResourceCallback(): callable
     {
-        return $this->postResourceCallback;
+        return $this->resourceCallback;
+    }
+
+    /**
+     * Set acallback to call after a document has created
+     *
+     * @param callable $callback
+     */
+    public function setDocumentCallback(callable $callback)
+    {
+        $this->documentCallback = $callback;
+    }
+
+    /**
+     * Has a callback to call after a document has created
+     *
+     * @return bool
+     */
+    public function hasDocumentCallback(): bool
+    {
+        return $this->documentCallback !== null;
+    }
+
+    /**
+     * Get a callback to call after a document has created
+     *
+     * @return callable
+     */
+    public function getDocumentCallback(): callable
+    {
+        return $this->documentCallback;
     }
 }

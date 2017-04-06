@@ -136,12 +136,13 @@ class JsonApiViewListener
     protected function handleObjectView(JsonApiObjectView $view): Response
     {
         $resource = $this->handleObject($view->getObject());
-        $this->handlePostResourceCallback($view, $resource);
+        $this->handleResourceCallback($view, $resource);
 
         $document = new SingleResourceDocument($resource);
         $document->setJsonApi(new JsonApiObject());
 
         $this->handleIncludedResources($document, $view);
+        $this->handleDocumentCallback($view, $document);
 
         $response = $this->createResponse($document);
 
@@ -155,11 +156,25 @@ class JsonApiViewListener
      * @param AbstractJsonApiView $view
      * @param ResourceObject      $resource
      */
-    protected function handlePostResourceCallback(AbstractJsonApiView $view, ResourceObject $resource)
+    protected function handleResourceCallback(AbstractJsonApiView $view, ResourceObject $resource)
     {
-        if ($view->hasPostResourceCallback()) {
-            $callback = $view->getPostResourceCallback();
+        if ($view->hasResourceCallback()) {
+            $callback = $view->getResourceCallback();
             $callback($resource);
+        }
+    }
+
+    /**
+     * Handle a callback after a document has created.
+     *
+     * @param AbstractJsonApiView $view
+     * @param AbstractDocument    $document
+     */
+    protected function handleDocumentCallback(AbstractJsonApiView $view, AbstractDocument $document)
+    {
+        if ($view->hasDocumentCallback()) {
+            $callback = $view->getDocumentCallback();
+            $callback($document);
         }
     }
 
@@ -192,12 +207,13 @@ class JsonApiViewListener
         foreach ($view as $object)
         {
             $resource = $this->handleObject($object);
-            $this->handlePostResourceCallback($view, $resource);
+            $this->handleResourceCallback($view, $resource);
 
             $document->addResource($resource);
         }
 
         $this->handleIncludedResources($document, $view);
+        $this->handleDocumentCallback($view, $document);
 
         $response = $this->createResponse($document);
 

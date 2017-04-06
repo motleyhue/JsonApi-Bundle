@@ -8,7 +8,9 @@ use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
+use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
+use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
@@ -173,7 +175,7 @@ class JsonApiViewListenerTest extends TestCase
         $listener->onKernelView($event);
     }
 
-    public function testPostResourceCallback()
+    public function testResourceCallback()
     {
         $object = new ResourceObject('123', 'Qwerty');
 
@@ -185,13 +187,13 @@ class JsonApiViewListenerTest extends TestCase
         $view->method('getStatusCode')
             ->willReturn(200);
 
-        $view->method('hasPostResourceCallback')
+        $view->method('hasResourceCallback')
             ->willReturn(true);
 
         $called = false;
 
         $view->expects($this->once())
-            ->method('getPostResourceCallback')
+            ->method('getResourceCallback')
             ->willReturn(function($resource) use(&$called) {
                 $this->assertInstanceOf(ResourceObject::class, $resource);
                 $called = true;
@@ -209,7 +211,43 @@ class JsonApiViewListenerTest extends TestCase
         $this->assertTrue($called);
     }
 
-    public function testPostResourceCallbackWithIterator()
+    public function testDocumentCallback()
+    {
+        $object = new ResourceObject('123', 'Qwerty');
+
+        $view = $this->createMock(JsonApiObjectView::class);
+
+        $view->method('getObject')
+            ->willReturn($object);
+
+        $view->method('getStatusCode')
+            ->willReturn(200);
+
+        $view->method('hasDocumentCallback')
+            ->willReturn(true);
+
+        $called = false;
+
+        $view->expects($this->once())
+            ->method('getDocumentCallback')
+            ->willReturn(function($resource) use(&$called) {
+                $this->assertInstanceOf(SingleResourceDocument::class, $resource);
+                $called = true;
+            });
+
+        $event = $this->createMock(GetResponseForControllerResultEvent::class);
+
+        $event->expects($this->once())
+            ->method('getControllerResult')
+            ->willReturn($view);
+
+        $listener = new JsonApiViewListener();
+        $listener->onKernelView($event);
+
+        $this->assertTrue($called);
+    }
+
+    public function testResourceCallbackWithIterator()
     {
         $object   = new ResourceObject('123', 'Qwerty');
         $iterator = new \ArrayIterator([$object]);
@@ -222,15 +260,52 @@ class JsonApiViewListenerTest extends TestCase
         $view->method('getStatusCode')
             ->willReturn(200);
 
-        $view->method('hasPostResourceCallback')
+        $view->method('hasResourceCallback')
             ->willReturn(true);
 
         $called = false;
 
         $view->expects($this->once())
-            ->method('getPostResourceCallback')
+            ->method('getResourceCallback')
             ->willReturn(function($resource) use(&$called) {
                 $this->assertInstanceOf(ResourceObject::class, $resource);
+                $called = true;
+            });
+
+        $event = $this->createMock(GetResponseForControllerResultEvent::class);
+
+        $event->expects($this->once())
+            ->method('getControllerResult')
+            ->willReturn($view);
+
+        $listener = new JsonApiViewListener();
+        $listener->onKernelView($event);
+
+        $this->assertTrue($called);
+    }
+
+    public function testDocumentCallbackWithIterator()
+    {
+        $object   = new ResourceObject('123', 'Qwerty');
+        $iterator = new \ArrayIterator([$object]);
+
+        $view = $this->createMock(JsonApiIteratorView::class);
+
+        $view->method('getIterator')
+            ->willReturn($iterator);
+
+        $view->method('getStatusCode')
+            ->willReturn(200);
+
+        $view->method('hasDocumentCallback')
+            ->willReturn(true);
+
+        $called = false;
+
+        $view->expects($this->once())
+            ->method('getDocumentCallback')
+            ->willReturn(function($resource) use(&$called) {
+                $this->assertInstanceOf(ResourceCollectionDocument::class, $resource);
                 $called = true;
             });
 

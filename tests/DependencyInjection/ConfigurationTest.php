@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -36,21 +37,7 @@ class ConfigurationTest extends TestCase
         $loader  = new YamlFileLoader($builder, $locator);
 
         $loader->load('services.yml');
-
-        $builder->set(
-            'jms_serializer',
-            $this->createMock(Serializer::class)
-        );
-
-        $builder->set(
-            'router',
-            $this->createMock(RouterInterface::class)
-        );
-
-        $builder->set(
-            'property_accessor',
-            $this->createMock(PropertyAccessorInterface::class)
-        );
+        $this->registerMocks($builder);
 
         $builder->addCompilerPass(new DocumentHydratorCompilerPass());
         $builder->addCompilerPass(new ObjectMapperCompilerPass());
@@ -71,6 +58,34 @@ class ConfigurationTest extends TestCase
         $this->assertInstanceOf(
             ObjectMapper::class,
             $builder->get('mrtn_json_api.object_mapper')
+        );
+    }
+
+    /**
+     * Register mocks of required services
+     *
+     * @param ContainerBuilder $builder
+     */
+    protected function registerMocks(ContainerBuilder $builder)
+    {
+        $builder->set(
+            'jms_serializer',
+            $this->createMock(Serializer::class)
+        );
+
+        $builder->set(
+            'router',
+            $this->createMock(RouterInterface::class)
+        );
+
+        $builder->set(
+            'property_accessor',
+            $this->createMock(PropertyAccessorInterface::class)
+        );
+
+        $builder->set(
+            'event_dispatcher',
+            $this->createMock(EventDispatcherInterface::class)
         );
     }
 }

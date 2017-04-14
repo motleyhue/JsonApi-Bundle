@@ -4,6 +4,7 @@ namespace Mikemirten\Bundle\JsonApiBundle;
 
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
+use Mikemirten\Component\JsonApi\Mapper\Definition\Link;
 use PHPUnit\Framework\TestCase;
 
 class JsonApiObjectViewTest extends TestCase
@@ -23,5 +24,21 @@ class JsonApiObjectViewTest extends TestCase
         $view   = new JsonApiObjectView($object);
 
         $this->assertSame($object, $view->getObject());
+    }
+
+    public function testDocumentLinks()
+    {
+        $object = new \stdClass();
+        $view   = new JsonApiObjectView($object);
+
+        $link = $this->createMock(Link::class);
+
+        $link->expects($this->once())
+            ->method('getName')
+            ->willReturn('test');
+
+        $view->addDocumentLink($link);
+
+        $this->assertSame(['test' => $link], $view->getDocumentLinks());
     }
 }

@@ -7,17 +7,18 @@ use Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectHandlerInterface;
 use Mikemirten\Bundle\JsonApiBundle\Response\AbstractJsonApiView;
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterface;
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsAwareInterface;
-use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsContainer;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
 use Mikemirten\Component\JsonApi\Document\JsonApiObject;
+use Mikemirten\Component\JsonApi\Document\LinkObject;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 
@@ -29,6 +30,13 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
  */
 class JsonApiViewListener
 {
+    /**
+     * Link-repositories provider
+     *
+     * @var RepositoryProvider
+     */
+    protected $linkRepositoryProvider;
+
     /**
      * Object-handlers
      *
@@ -42,6 +50,16 @@ class JsonApiViewListener
      * @var ObjectHandlerInterface[]
      */
     protected $resolvedObjectHandlers = [];
+
+    /**
+     * JsonApiViewListener constructor.
+     *
+     * @param RepositoryProvider $linkRepositoryProvider
+     */
+    public function __construct(RepositoryProvider $linkRepositoryProvider)
+    {
+        $this->linkRepositoryProvider = $linkRepositoryProvider;
+    }
 
     /**
      * Add object-handler
@@ -142,6 +160,7 @@ class JsonApiViewListener
         $document->setJsonApi(new JsonApiObject());
 
         $this->handleIncludedResources($document, $view);
+        $this->handleDocumentLinks($view, $document);
         $this->handleDocumentCallback($view, $document);
 
         $response = $this->createResponse($document);
@@ -161,6 +180,35 @@ class JsonApiViewListener
         if ($view->hasResourceCallback()) {
             $callback = $view->getResourceCallback();
             $callback($resource);
+        }
+    }
+
+    /**
+     * Handle links of document
+     *
+     * @param AbstractJsonApiView $view
+     * @param AbstractDocument    $document
+     */
+    protected function handleDocumentLinks(AbstractJsonApiView $view, AbstractDocument $document)
+    {
+        foreach ($view->getDocumentLinks() as $definition)
+        {
+            $repositoryName = $definition->getRepositoryName();
+            $linkName       = $definition->getLinkName();
+            $parameters     = $definition->getParameters();
+
+            $linkData = $this->linkRepositoryProvider
+                ->getRepository($repositoryName)
+                ->getLink($linkName, $parameters);
+
+            $metadata = array_replace(
+                $linkData->getMetadata(),
+                $definition->getMetadata()
+            );
+
+            $link = new LinkObject($linkData->getReference(), $metadata);
+
+            $document->setLink($definition->getName(), $link);
         }
     }
 
@@ -213,6 +261,7 @@ class JsonApiViewListener
         }
 
         $this->handleIncludedResources($document, $view);
+        $this->handleDocumentLinks($view, $document);
         $this->handleDocumentCallback($view, $document);
 
         $response = $this->createResponse($document);

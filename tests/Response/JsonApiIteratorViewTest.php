@@ -3,6 +3,7 @@
 namespace Mikemirten\Bundle\JsonApiBundle;
 
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
+use Mikemirten\Component\JsonApi\Mapper\Definition\Link;
 use PHPUnit\Framework\TestCase;
 
 class JsonApiIteratorViewTest extends TestCase
@@ -23,5 +24,21 @@ class JsonApiIteratorViewTest extends TestCase
 
         $this->assertInstanceOf('IteratorAggregate', $view);
         $this->assertSame($iterator, $view->getIterator());
+    }
+
+    public function testDocumentLinks()
+    {
+        $iterator = new \ArrayIterator([]);
+        $view     = new JsonApiIteratorView($iterator);
+
+        $link = $this->createMock(Link::class);
+
+        $link->expects($this->once())
+            ->method('getName')
+            ->willReturn('test');
+
+        $view->addDocumentLink($link);
+
+        $this->assertSame(['test' => $link], $view->getDocumentLinks());
     }
 }

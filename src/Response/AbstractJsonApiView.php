@@ -7,6 +7,7 @@ use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterf
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesContainer;
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsAwareInterface;
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsContainer;
+use Mikemirten\Component\JsonApi\Mapper\Definition\Link;
 
 /**
  * Abstract Json API view supposed to get handled and converted into a response
@@ -31,6 +32,13 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
      * @var callable
      */
     protected $documentCallback;
+
+    /**
+     * Definitions of links have to be added to document
+     *
+     * @var Link[]
+     */
+    protected $documentLinks;
 
     /**
      * Set a callback to call after a resource-object has created.
@@ -63,7 +71,7 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
     }
 
     /**
-     * Set acallback to call after a document has created
+     * Set a callback to call after a document has created
      *
      * @param callable $callback
      */
@@ -90,5 +98,31 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
     public function getDocumentCallback(): callable
     {
         return $this->documentCallback;
+    }
+
+    /**
+     * Add a definition of link have to be added to document
+     *
+     * @param Link $link
+     */
+    public function addDocumentLink(Link $link)
+    {
+        $name = $link->getName();
+
+        if (isset($this->documentLinks[$name])) {
+            throw new \LogicException(sprintf('Link "%s" already added to document.'));
+        }
+
+        $this->documentLinks[$name] = $link;
+    }
+
+    /**
+     * Get definitions of links have to be added to document
+     *
+     * @return Link[]
+     */
+    public function getDocumentLinks(): array
+    {
+        return $this->documentLinks;
     }
 }

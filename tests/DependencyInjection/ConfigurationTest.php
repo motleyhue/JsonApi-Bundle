@@ -6,6 +6,7 @@ use JMS\Serializer\Serializer;
 use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\DocumentHydratorCompilerPass;
 use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\ObjectMapperCompilerPass;
 use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\ViewListenerCompilerPass;
+use Mikemirten\Bundle\JsonApiBundle\EventListener\JsonApiViewListener;
 use Mikemirten\Component\JsonApi\HttpClient\HttpClient;
 use Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator;
 use Mikemirten\Component\JsonApi\Mapper\ObjectMapper;
@@ -58,6 +59,11 @@ class ConfigurationTest extends TestCase
         $this->assertInstanceOf(
             ObjectMapper::class,
             $builder->get('mrtn_json_api.object_mapper')
+        );
+
+        $this->assertInstanceOf(
+            JsonApiViewListener::class,
+            $builder->get('mrtn_json_api.kernel_view.listener')
         );
     }
 

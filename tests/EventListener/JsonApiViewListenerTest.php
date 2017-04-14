@@ -11,6 +11,10 @@ use Mikemirten\Component\JsonApi\Document\ErrorObject;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+use Mikemirten\Component\JsonApi\Mapper\Definition\Link as LinkDefinition;
+use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\Link as LinkData;
+use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryInterface;
+use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
@@ -28,7 +32,8 @@ class JsonApiViewListenerTest extends TestCase
         $event->expects($this->never())
             ->method('setResponse');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
 
         $this->assertNull($listener->onKernelView($event));
     }
@@ -42,7 +47,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($document, '{"data":"qwerty"}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
     }
 
@@ -55,7 +61,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($resource, '{"jsonapi":{"version":"1.0"},"data":{"resource_data":"qwerty"}}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
     }
 
@@ -68,7 +75,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($error, '{"errors":[{"error_data":"qwerty"}],"jsonapi":{"version":"1.0"}}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
     }
 
@@ -90,7 +98,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($view, '{"data":"qwerty"}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
     }
 
@@ -116,7 +125,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":{"test":"qwerty"}}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->addObjectHandler($handler);
 
         $listener->onKernelView($event);
@@ -142,7 +152,8 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getControllerResult')
             ->willReturn($view);
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
     }
 
@@ -169,7 +180,8 @@ class JsonApiViewListenerTest extends TestCase
 
         $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":[{"test":"qwerty"}]}');
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->addObjectHandler($handler);
 
         $listener->onKernelView($event);
@@ -205,7 +217,8 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getControllerResult')
             ->willReturn($view);
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
 
         $this->assertTrue($called);
@@ -241,7 +254,8 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getControllerResult')
             ->willReturn($view);
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
 
         $this->assertTrue($called);
@@ -278,7 +292,8 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getControllerResult')
             ->willReturn($view);
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
 
         $this->assertTrue($called);
@@ -315,10 +330,37 @@ class JsonApiViewListenerTest extends TestCase
             ->method('getControllerResult')
             ->willReturn($view);
 
-        $listener = new JsonApiViewListener();
+        $provider = $this->createMock(RepositoryProvider::class);
+        $listener = new JsonApiViewListener($provider);
         $listener->onKernelView($event);
 
         $this->assertTrue($called);
+    }
+
+    public function testDocumentLinks()
+    {
+        $object = new ResourceObject('123', 'Qwerty');
+
+        $linkDefinition = $this->createLinkDefinition('test_name', 'test_repository', 'test_link');
+
+        $view = $this->createMock(JsonApiObjectView::class);
+
+        $view->method('getObject')
+            ->willReturn($object);
+
+        $view->method('getStatusCode')
+            ->willReturn(200);
+
+        $view->expects($this->once())
+            ->method('getDocumentLinks')
+            ->willReturn([$linkDefinition]);
+
+        $event = $this->createEvent($view, '{"links":{"test_name":"http:\/\/test.com"},"jsonapi":{"version":"1.0"},"data":{"id":"123","type":"Qwerty"}}');
+
+        $provider = $this->createLinkProvider('test_repository', 'test_link', 'http://test.com');
+
+        $listener = new JsonApiViewListener($provider);
+        $listener->onKernelView($event);
     }
 
     /**
@@ -352,6 +394,66 @@ class JsonApiViewListenerTest extends TestCase
         }
 
         return $handler;
+    }
+
+    /**
+     * Create mock of link's definition
+     *
+     * @param  string $name
+     * @param  string $repositoryName
+     * @param  string $linkName
+     * @return LinkDefinition
+     */
+    protected function createLinkDefinition(string $name, string $repositoryName, string $linkName): LinkDefinition
+    {
+        $link = $this->createMock(LinkDefinition::class);
+
+        $link->expects($this->once())
+            ->method('getName')
+            ->willReturn($name);
+
+        $link->expects($this->once())
+            ->method('getRepositoryName')
+            ->willReturn($repositoryName);
+
+        $link->expects($this->once())
+            ->method('getLinkName')
+            ->willReturn($linkName);
+
+        return $link;
+    }
+
+    /**
+     * Create mock of repository provider
+     *
+     * @param  string $repositoryName
+     * @param  string $linkName
+     * @param  string $reference
+     * @return RepositoryProvider
+     */
+    protected function createLinkProvider(string $repositoryName, string $linkName, string $reference): RepositoryProvider
+    {
+        $link = $this->createMock(LinkData::class);
+
+        $link->expects($this->once())
+            ->method('getReference')
+            ->willReturn($reference);
+
+        $repository = $this->createMock(RepositoryInterface::class);
+
+        $repository->expects($this->once())
+            ->method('getLink')
+            ->with($linkName)
+            ->willReturn($link);
+
+        $provider = $this->createMock(RepositoryProvider::class);
+
+        $provider->expects($this->once())
+            ->method('getRepository')
+            ->with($repositoryName)
+            ->willReturn($repository);
+
+        return $provider;
     }
 
     /**

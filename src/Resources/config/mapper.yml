@@ -4,6 +4,7 @@ parameters:
     mrtn_json_api.object_mapper.handler.rigid_identifier.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\IdentifierHandler\RigidIdentifierHandler'
     mrtn_json_api.object_mapper.handler.class_based_type.class:      'Mikemirten\Component\JsonApi\Mapper\Handler\TypeHandler\ClassBasedTypeHandler'
     mrtn_json_api.object_mapper.handler.jms_array_transformer.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\JmsArrayTransformerHandler'
+    mrtn_json_api.object_mapper.handler.attribute.class:             'Mikemirten\Component\JsonApi\Mapper\Handler\AttributeHandler'
     mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
     mrtn_json_api.object_mapper.handler.link.class:                  'Mikemirten\Component\JsonApi\Mapper\Handler\LinkHandler\LinkHandler'
 
@@ -31,11 +32,17 @@ services:
         public: false
         arguments: [true, '.']
 
-    mrtn_json_api.object_mapper.handler.jms_array_transformer:
-        class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
+    mrtn_json_api.object_mapper.handler.attribute:
+        class: '%mrtn_json_api.object_mapper.handler.attribute.class%'
+        public: false
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.handler' }
+
+    mrtn_json_api.object_mapper.handler.relationship:
+        class: '%mrtn_json_api.object_mapper.handler.relationship.class%'
         public: false
         arguments:
-            - '@jms_serializer'
+            - '@mrtn_json_api.object_mapper.handler.link'
         tags:
             - { name: 'mrtn_json_api.object_mapper.handler' }
 
@@ -48,11 +55,11 @@ services:
         tags:
             - { name: 'mrtn_json_api.object_mapper.handler' }
 
-    mrtn_json_api.object_mapper.handler.relationship:
-        class: '%mrtn_json_api.object_mapper.handler.relationship.class%'
+    mrtn_json_api.object_mapper.handler.jms_array_transformer:
+        class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
         public: false
         arguments:
-            - '@mrtn_json_api.object_mapper.handler.link'
+            - '@jms_serializer'
         tags:
             - { name: 'mrtn_json_api.object_mapper.handler' }
 

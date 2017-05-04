@@ -38,7 +38,7 @@ abstract class AbstractJsonApiView implements HttpAttributesAwareInterface, Incl
      *
      * @var Link[]
      */
-    protected $documentLinks;
+    protected $documentLinks = [];
 
     /**
      * Set a callback to call after a resource-object has created.

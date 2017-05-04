@@ -16,6 +16,7 @@ class ObjectMapperCompilerPass implements CompilerPassInterface
     {
         $this->processMappingHandlers($container);
         $this->processLinkRepositories($container);
+        $this->processDataTypeHandlers($container);
     }
 
     /**
@@ -57,6 +58,18 @@ class ObjectMapperCompilerPass implements CompilerPassInterface
                     new Reference($id)
                 ]);
             }
+        }
+    }
+
+    protected function processDataTypeHandlers(ContainerBuilder $container)
+    {
+        $definition = $container->findDefinition('mrtn_json_api.object_mapper.handler.attribute');
+        $extensions = $container->findTaggedServiceIds('mrtn_json_api.object_mapper.datatype_handler');
+
+        foreach ($extensions as $id => $tags) {
+            $definition->addMethodCall('registerDataTypeHandler', [
+                new Reference($id)
+            ]);
         }
     }
 }

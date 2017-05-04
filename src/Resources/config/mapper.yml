@@ -8,6 +8,8 @@ parameters:
     mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
     mrtn_json_api.object_mapper.handler.link.class:                  'Mikemirten\Component\JsonApi\Mapper\Handler\LinkHandler\LinkHandler'
 
+    mrtn_json_api.object_mapper.datatype_handler.datetime.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeHandler\DateTimeHandler'
+
     mrtn_json_api.object_mapper.link_repository_provider.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider'
 
     mrtn_json_api.object_mapper.property_accessor.symfony.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\PropertyAccessor\SymfonyPropertyAccessor'
@@ -66,6 +68,12 @@ services:
     mrtn_json_api.object_mapper.link_repository_provider:
         class: '%mrtn_json_api.object_mapper.link_repository_provider.class%'
         public: false
+
+    mrtn_json_api.object_mapper.datatype_handler.datetime:
+        class: '%mrtn_json_api.object_mapper.datatype_handler.datetime.class%'
+        public: false
+        tags:
+            - { name: 'mrtn_json_api.object_mapper.datatype_handler' }
 
     mrtn_json_api.object_mapper.property_accessor.symfony:
         class: '%mrtn_json_api.object_mapper.property_accessor.symfony.class%'

@@ -64,7 +64,7 @@ services:
         arguments:
             - '@jms_serializer'
         tags:
-            - { name: 'mrtn_json_api.object_mapper.handler', alial: 'jms_serializer' }
+            - { name: 'mrtn_json_api.object_mapper.handler', alias: 'jms_serializer' }
 
     mrtn_json_api.object_mapper.link_repository_provider:
         class: '%mrtn_json_api.object_mapper.link_repository_provider.class%'

@@ -14,26 +14,8 @@ class ObjectMapperCompilerPass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
-        $this->processMappingHandlers($container);
         $this->processLinkRepositories($container);
         $this->processDataTypeHandlers($container);
-    }
-
-    /**
-     * Process mapping handlers
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processMappingHandlers(ContainerBuilder $container)
-    {
-        $definition = $container->findDefinition('mrtn_json_api.object_mapper');
-        $extensions = $container->findTaggedServiceIds('mrtn_json_api.object_mapper.handler');
-
-        foreach ($extensions as $id => $tags) {
-            $definition->addMethodCall('addHandler', [
-                new Reference($id)
-            ]);
-        }
     }
 
     /**

@@ -17,8 +17,9 @@ parameters:
     mrtn_json_api.symfony_routing_link_repository.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\SymfonyUrlGeneratorRepository'
 
 services:
-    mrtn_json_api.object_mapper:
+    mrtn_json_api.object_mapper.abstract:
         class: '%mrtn_json_api.object_mapper.class%'
+        abstract: true
         arguments:
             - '@mrtn_json_api.object_mapper.definition_provider.annotation'
             - '@mrtn_json_api.object_mapper.handler.rigid_identifier'
@@ -38,7 +39,7 @@ services:
         class: '%mrtn_json_api.object_mapper.handler.attribute.class%'
         public: false
         tags:
-            - { name: 'mrtn_json_api.object_mapper.handler' }
+            - { name: 'mrtn_json_api.object_mapper.handler', alias: 'attribute' }
 
     mrtn_json_api.object_mapper.handler.relationship:
         class: '%mrtn_json_api.object_mapper.handler.relationship.class%'
@@ -46,7 +47,7 @@ services:
         arguments:
             - '@mrtn_json_api.object_mapper.handler.link'
         tags:
-            - { name: 'mrtn_json_api.object_mapper.handler' }
+            - { name: 'mrtn_json_api.object_mapper.handler', alias: 'relationship' }
 
     mrtn_json_api.object_mapper.handler.link:
         class: '%mrtn_json_api.object_mapper.handler.link.class%'
@@ -55,7 +56,7 @@ services:
             - '@mrtn_json_api.object_mapper.link_repository_provider'
             - '@mrtn_json_api.object_mapper.property_accessor.symfony'
         tags:
-            - { name: 'mrtn_json_api.object_mapper.handler' }
+            - { name: 'mrtn_json_api.object_mapper.handler', alias: 'link' }
 
     mrtn_json_api.object_mapper.handler.jms_array_transformer:
         class: '%mrtn_json_api.object_mapper.handler.jms_array_transformer.class%'
@@ -63,7 +64,7 @@ services:
         arguments:
             - '@jms_serializer'
         tags:
-            - { name: 'mrtn_json_api.object_mapper.handler' }
+            - { name: 'mrtn_json_api.object_mapper.handler', alial: 'jms_serializer' }
 
     mrtn_json_api.object_mapper.link_repository_provider:
         class: '%mrtn_json_api.object_mapper.link_repository_provider.class%'

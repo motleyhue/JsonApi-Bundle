@@ -44,6 +44,9 @@ class ConfigurationTest extends TestCase
         $builder->addCompilerPass(new ObjectMapperCompilerPass());
         $builder->addCompilerPass(new ViewListenerCompilerPass());
 
+        $builder->registerExtension(new JsonApiExtension());
+        $builder->loadFromExtension('mrtn_json_api');
+
         $builder->compile();
 
         $this->assertInstanceOf(
@@ -58,7 +61,7 @@ class ConfigurationTest extends TestCase
 
         $this->assertInstanceOf(
             ObjectMapper::class,
-            $builder->get('mrtn_json_api.object_mapper')
+            $builder->get('mrtn_json_api.object_mapper.default')
         );
 
         $this->assertInstanceOf(

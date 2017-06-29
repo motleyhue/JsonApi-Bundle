@@ -1,8 +1,3 @@
-imports:
-    - { resource: 'hydrator.yml' }
-    - { resource: 'mapper.yml' }
-    - { resource: 'http_client.yml' }
-
 parameters:
     mrtn_json_api.document.parameter_converter.class: 'Mikemirten\Bundle\JsonApiBundle\Request\JsonApiDocumentParameterConverter'
 
@@ -34,7 +29,7 @@ services:
         class: '%mrtn_json_api.view_listener.object_handler.object_mapper.class%'
         public: false
         arguments:
-            - '@mrtn_json_api.object_mapper'
+            - '@mrtn_json_api.object_mapper.default'
         tags:
             - { name: 'mrtn_json_api.view_listener.object_handler' }
 

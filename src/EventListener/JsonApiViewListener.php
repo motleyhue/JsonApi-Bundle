@@ -103,7 +103,7 @@ class JsonApiViewListener
      * @param  JsonApiDocumentView $view
      * @return Response
      */
-    protected function handleDocumentView(JsonApiDocumentView $view)
+    protected function handleDocumentView(JsonApiDocumentView $view): Response
     {
         $document = $view->getDocument();
         $response = $this->createResponse($document);
@@ -118,7 +118,7 @@ class JsonApiViewListener
      * @param  AbstractJsonApiView $view
      * @return Response
      */
-    protected function handleView(AbstractJsonApiView $view)
+    protected function handleView(AbstractJsonApiView $view): Response
     {
         $document = $this->documentBuilder->build($view);
         $response = $this->createResponse($document);

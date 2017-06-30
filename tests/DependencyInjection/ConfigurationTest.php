@@ -42,7 +42,6 @@ class ConfigurationTest extends TestCase
 
         $builder->addCompilerPass(new DocumentHydratorCompilerPass());
         $builder->addCompilerPass(new ObjectMapperCompilerPass());
-        $builder->addCompilerPass(new ViewListenerCompilerPass());
 
         $builder->registerExtension(new JsonApiExtension());
         $builder->loadFromExtension('mrtn_json_api');

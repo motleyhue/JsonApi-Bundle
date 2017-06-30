@@ -16,12 +16,6 @@ class JsonApiConfiguration implements ConfigurationInterface
         $builder  = new TreeBuilder();
         $children = $builder->root('mrtn_json_api')->children();
 
-        $children->arrayNode('view_listener_mapping_handler')
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->scalarNode('default_mapper')
-                    ->defaultValue('default');
-
         $children->arrayNode('mappers')
             ->defaultValue(['default' => [
                 'handlers' => [

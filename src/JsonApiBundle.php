@@ -27,6 +27,5 @@ class JsonApiBundle extends Bundle
     {
         $container->addCompilerPass(new DocumentHydratorCompilerPass());
         $container->addCompilerPass(new ObjectMapperCompilerPass());
-        $container->addCompilerPass(new ViewListenerCompilerPass());
     }
 }

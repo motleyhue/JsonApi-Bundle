@@ -3,24 +3,20 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\EventListener;
 
-use Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectHandlerInterface;
+use Mikemirten\Bundle\JsonApiBundle\Builder\DocumentBuilder;
 use Mikemirten\Bundle\JsonApiBundle\Response\AbstractJsonApiView;
 use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\HttpAttributesAwareInterface;
-use Mikemirten\Bundle\JsonApiBundle\Response\Behaviour\IncludedObjectsAwareInterface;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
-use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
-use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
-use Mikemirten\Component\JsonApi\Document\AbstractDocument;
-use Mikemirten\Component\JsonApi\Document\ErrorObject;
-use Mikemirten\Component\JsonApi\Document\JsonApiObject;
-use Mikemirten\Component\JsonApi\Document\LinkObject;
-use Mikemirten\Component\JsonApi\Document\NoDataDocument;
-use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
-use Mikemirten\Component\JsonApi\Document\ResourceObject;
-use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
-use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
+use Mikemirten\Component\JsonApi\Document\{
+    AbstractDocument,
+    NoDataDocument,
+    SingleResourceDocument,
+    ErrorObject,
+    JsonApiObject,
+    ResourceObject
+};
 
 /**
  * JsonApi view listener
@@ -31,44 +27,20 @@ use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 class JsonApiViewListener
 {
     /**
-     * Link-repositories provider
+     * Document builder
      *
-     * @var RepositoryProvider
+     * @var DocumentBuilder
      */
-    protected $linkRepositoryProvider;
-
-    /**
-     * Object-handlers
-     *
-     * @var ObjectHandlerInterface[]
-     */
-    protected $objectHandlers = [];
-
-    /**
-     * Object-handlers resolved by supported class
-     *
-     * @var ObjectHandlerInterface[]
-     */
-    protected $resolvedObjectHandlers = [];
+    protected $documentBuilder;
 
     /**
      * JsonApiViewListener constructor.
      *
-     * @param RepositoryProvider $linkRepositoryProvider
+     * @param DocumentBuilder $builder
      */
-    public function __construct(RepositoryProvider $linkRepositoryProvider)
+    public function __construct(DocumentBuilder $builder)
     {
-        $this->linkRepositoryProvider = $linkRepositoryProvider;
-    }
-
-    /**
-     * Add object-handler
-     *
-     * @param ObjectHandlerInterface $handler
-     */
-    public function addObjectHandler(ObjectHandlerInterface $handler)
-    {
-        $this->objectHandlers[] = $handler;
+        $this->documentBuilder = $builder;
     }
 
     /**
@@ -109,14 +81,9 @@ class JsonApiViewListener
             return $this->handleDocumentView($result);
         }
 
-        // An object for serialization wrapped into view
-        if ($result instanceof JsonApiObjectView) {
-            return $this->handleObjectView($result);
-        }
-
-        // An iterator of objects for serialization wrapped into view
-        if ($result instanceof JsonApiIteratorView) {
-            return $this->handleIteratorView($result);
+        // An object or an iterator of objects for serialization wrapped into view
+        if ($result instanceof AbstractJsonApiView) {
+            return $this->handleView($result);
         }
 
         // A resource-object of Json API document
@@ -146,124 +113,14 @@ class JsonApiViewListener
     }
 
     /**
-     * Handle single object Json API view
+     * Handle a JSON-API view contains an object(s) for serialization
      *
-     * @param  JsonApiObjectView $view
+     * @param  AbstractJsonApiView $view
      * @return Response
      */
-    protected function handleObjectView(JsonApiObjectView $view): Response
+    protected function handleView(AbstractJsonApiView $view)
     {
-        $resource = $this->handleObject($view->getObject());
-        $this->handleResourceCallback($view, $resource);
-
-        $document = new SingleResourceDocument($resource);
-        $document->setJsonApi(new JsonApiObject());
-
-        $this->handleIncludedResources($document, $view);
-        $this->handleDocumentLinks($view, $document);
-        $this->handleDocumentCallback($view, $document);
-
-        $response = $this->createResponse($document);
-
-        $this->handleHttpAttributes($response, $view);
-        return $response;
-    }
-
-    /**
-     * Handle a callback after a resource-object has created.
-     *
-     * @param AbstractJsonApiView $view
-     * @param ResourceObject      $resource
-     */
-    protected function handleResourceCallback(AbstractJsonApiView $view, ResourceObject $resource)
-    {
-        if ($view->hasResourceCallback()) {
-            $callback = $view->getResourceCallback();
-            $callback($resource);
-        }
-    }
-
-    /**
-     * Handle links of document
-     *
-     * @param AbstractJsonApiView $view
-     * @param AbstractDocument    $document
-     */
-    protected function handleDocumentLinks(AbstractJsonApiView $view, AbstractDocument $document)
-    {
-        foreach ($view->getDocumentLinks() as $definition)
-        {
-            $repositoryName = $definition->getRepositoryName();
-            $linkName       = $definition->getLinkName();
-            $parameters     = $definition->getParameters();
-
-            $linkData = $this->linkRepositoryProvider
-                ->getRepository($repositoryName)
-                ->getLink($linkName, $parameters);
-
-            $metadata = array_replace(
-                $linkData->getMetadata(),
-                $definition->getMetadata()
-            );
-
-            $link = new LinkObject($linkData->getReference(), $metadata);
-
-            $document->setLink($definition->getName(), $link);
-        }
-    }
-
-    /**
-     * Handle a callback after a document has created.
-     *
-     * @param AbstractJsonApiView $view
-     * @param AbstractDocument    $document
-     */
-    protected function handleDocumentCallback(AbstractJsonApiView $view, AbstractDocument $document)
-    {
-        if ($view->hasDocumentCallback()) {
-            $callback = $view->getDocumentCallback();
-            $callback($document);
-        }
-    }
-
-    /**
-     * Handle supposed to be included to document resources
-     *
-     * @param AbstractDocument              $document
-     * @param IncludedObjectsAwareInterface $view
-     */
-    protected function handleIncludedResources(AbstractDocument $document, IncludedObjectsAwareInterface $view)
-    {
-        foreach ($view->getIncludedObjects() as $object)
-        {
-            $resource = $this->handleObject($object);
-            $document->addIncludedResource($resource);
-        }
-    }
-
-    /**
-     * Handle object-iterator
-     *
-     * @param  JsonApiIteratorView $view
-     * @return Response
-     */
-    protected function handleIteratorView(JsonApiIteratorView $view): Response
-    {
-        $document = new ResourceCollectionDocument();
-        $document->setJsonApi(new JsonApiObject());
-
-        foreach ($view as $object)
-        {
-            $resource = $this->handleObject($object);
-            $this->handleResourceCallback($view, $resource);
-
-            $document->addResource($resource);
-        }
-
-        $this->handleIncludedResources($document, $view);
-        $this->handleDocumentLinks($view, $document);
-        $this->handleDocumentCallback($view, $document);
-
+        $document = $this->documentBuilder->build($view);
         $response = $this->createResponse($document);
 
         $this->handleHttpAttributes($response, $view);
@@ -280,46 +137,6 @@ class JsonApiViewListener
     {
         $response->setStatusCode($view->getStatusCode());
         $response->headers->add($view->getHeaders());
-    }
-
-    /**
-     * Handle object
-     *
-     * @param  $object
-     * @return ResourceObject
-     */
-    protected function handleObject($object): ResourceObject
-    {
-        if ($object instanceof ResourceObject) {
-            return $object;
-        }
-
-        $class = get_class($object);
-
-        return $this->getHandler($class)->handle($object);
-    }
-
-    /**
-     * Get handler supports given class
-     *
-     * @param  string $class
-     * @return ObjectHandlerInterface
-     * @throws \LogicException
-     */
-    protected function getHandler(string $class): ObjectHandlerInterface
-    {
-        if (isset($this->resolvedObjectHandlers[$class])) {
-            return $this->resolvedObjectHandlers[$class];
-        }
-
-        foreach ($this->objectHandlers as $handler) {
-            if ($handler->supports($class)) {
-                $this->resolvedObjectHandlers[$class] = $handler;
-                return $handler;
-            }
-        }
-
-        throw new \LogicException(sprintf('Class "%s" is not supported by known handles.', $class));
     }
 
     /**

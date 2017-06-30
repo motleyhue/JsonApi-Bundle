@@ -2,23 +2,22 @@
 
 namespace Mikemirten\Bundle\JsonApiBundle\EventListener;
 
-use Mikemirten\Bundle\JsonApiBundle\ObjectHandler\ObjectHandlerInterface;
+use Mikemirten\Bundle\JsonApiBundle\Builder\DocumentBuilder;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiDocumentView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiIteratorView;
 use Mikemirten\Bundle\JsonApiBundle\Response\JsonApiObjectView;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\ErrorObject;
-use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceObject;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
-use Mikemirten\Component\JsonApi\Mapper\Definition\Link as LinkDefinition;
-use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\Link as LinkData;
-use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryInterface;
-use Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\GetResponseForControllerResultEvent;
 
+/**
+ * @group   view-listener
+ * @package Mikemirten\Bundle\JsonApiBundle\EventListener
+ */
 class JsonApiViewListenerTest extends TestCase
 {
     public function testSkipHandling()
@@ -32,8 +31,8 @@ class JsonApiViewListenerTest extends TestCase
         $event->expects($this->never())
             ->method('setResponse');
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $builder  = $this->createMock(DocumentBuilder::class);
+        $listener = new JsonApiViewListener($builder);
 
         $this->assertNull($listener->onKernelView($event));
     }
@@ -45,10 +44,10 @@ class JsonApiViewListenerTest extends TestCase
         $document->method('toArray')
             ->willReturn(['data' => 'qwerty']);
 
-        $event = $this->createEvent($document, '{"data":"qwerty"}');
+        $event   = $this->createEvent($document, '{"data":"qwerty"}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
     }
 
@@ -59,10 +58,10 @@ class JsonApiViewListenerTest extends TestCase
         $resource->method('toArray')
             ->willReturn(['resource_data' => 'qwerty']);
 
-        $event = $this->createEvent($resource, '{"jsonapi":{"version":"1.0"},"data":{"resource_data":"qwerty"}}');
+        $event   = $this->createEvent($resource, '{"jsonapi":{"version":"1.0"},"data":{"resource_data":"qwerty"}}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
     }
 
@@ -73,10 +72,10 @@ class JsonApiViewListenerTest extends TestCase
         $error->method('toArray')
             ->willReturn(['error_data' => 'qwerty']);
 
-        $event = $this->createEvent($error, '{"errors":[{"error_data":"qwerty"}],"jsonapi":{"version":"1.0"}}');
+        $event   = $this->createEvent($error, '{"errors":[{"error_data":"qwerty"}],"jsonapi":{"version":"1.0"}}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
     }
 
@@ -96,364 +95,65 @@ class JsonApiViewListenerTest extends TestCase
         $view->method('getStatusCode')
             ->willReturn(200);
 
-        $event = $this->createEvent($view, '{"data":"qwerty"}');
+        $event   = $this->createEvent($view, '{"data":"qwerty"}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
     }
 
     public function testObjectView()
     {
-        $object  = new \stdClass();
-        $object2 = new \stdClass();
-
         $view = $this->createMock(JsonApiObjectView::class);
-
-        $view->expects($this->once())
-            ->method('getObject')
-            ->willReturn($object);
 
         $view->method('getStatusCode')
             ->willReturn(200);
 
-        $view->expects($this->once())
-            ->method('getIncludedObjects')
-            ->willReturn([$object2]);
+        $document = $this->createMock(SingleResourceDocument::class);
 
-        $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
+        $document->expects($this->once())
+            ->method('toArray')
+            ->willReturn([
+                'data' => ['test' => 'qwerty']
+            ]);
 
-        $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":{"test":"qwerty"}}');
+        $event   = $this->createEvent($view, '{"data":{"test":"qwerty"}}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->addObjectHandler($handler);
+        $builder->expects($this->once())
+            ->method('build')
+            ->with($view)
+            ->willReturn($document);
 
-        $listener->onKernelView($event);
-    }
-
-    /**
-     * @expectedException \LogicException
-     */
-    public function testUnsupportedObject()
-    {
-        $view = $this->createMock(JsonApiObjectView::class);
-
-        $view->expects($this->once())
-            ->method('getObject')
-            ->willReturn(new \stdClass());
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
-
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
     }
 
     public function testIteratorView()
     {
-        $object   = new \stdClass();
-        $object2  = new \stdClass();
-        $iterator = new \ArrayIterator([$object]);
-
         $view = $this->createMock(JsonApiIteratorView::class);
 
-        $view->expects($this->once())
-            ->method('getIterator')
-            ->willReturn($iterator);
-
         $view->method('getStatusCode')
             ->willReturn(200);
 
-        $view->expects($this->once())
-            ->method('getIncludedObjects')
-            ->willReturn([$object2]);
+        $document = $this->createMock(SingleResourceDocument::class);
 
-        $handler = $this->createObjectHandler('stdClass', [$object, $object2], ['test' => 'qwerty']);
+        $document->expects($this->once())
+            ->method('toArray')
+            ->willReturn([
+                'data' => [['test' => 'qwerty']]
+            ]);
 
-        $event = $this->createEvent($view, '{"included":[{"test":"qwerty"}],"jsonapi":{"version":"1.0"},"data":[{"test":"qwerty"}]}');
+        $event   = $this->createEvent($view, '{"data":[{"test":"qwerty"}]}');
+        $builder = $this->createMock(DocumentBuilder::class);
 
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->addObjectHandler($handler);
+        $builder->expects($this->once())
+            ->method('build')
+            ->with($view)
+            ->willReturn($document);
 
+        $listener = new JsonApiViewListener($builder);
         $listener->onKernelView($event);
-    }
-
-    public function testResourceCallback()
-    {
-        $object = new ResourceObject('123', 'Qwerty');
-
-        $view = $this->createMock(JsonApiObjectView::class);
-
-        $view->method('getObject')
-            ->willReturn($object);
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $view->method('hasResourceCallback')
-            ->willReturn(true);
-
-        $called = false;
-
-        $view->expects($this->once())
-            ->method('getResourceCallback')
-            ->willReturn(function($resource) use(&$called) {
-                $this->assertInstanceOf(ResourceObject::class, $resource);
-                $called = true;
-            });
-
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
-
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->onKernelView($event);
-
-        $this->assertTrue($called);
-    }
-
-    public function testDocumentCallback()
-    {
-        $object = new ResourceObject('123', 'Qwerty');
-
-        $view = $this->createMock(JsonApiObjectView::class);
-
-        $view->method('getObject')
-            ->willReturn($object);
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $view->method('hasDocumentCallback')
-            ->willReturn(true);
-
-        $called = false;
-
-        $view->expects($this->once())
-            ->method('getDocumentCallback')
-            ->willReturn(function($resource) use(&$called) {
-                $this->assertInstanceOf(SingleResourceDocument::class, $resource);
-                $called = true;
-            });
-
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
-
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->onKernelView($event);
-
-        $this->assertTrue($called);
-    }
-
-    public function testResourceCallbackWithIterator()
-    {
-        $object   = new ResourceObject('123', 'Qwerty');
-        $iterator = new \ArrayIterator([$object]);
-
-        $view = $this->createMock(JsonApiIteratorView::class);
-
-        $view->method('getIterator')
-            ->willReturn($iterator);
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $view->method('hasResourceCallback')
-            ->willReturn(true);
-
-        $called = false;
-
-        $view->expects($this->once())
-            ->method('getResourceCallback')
-            ->willReturn(function($resource) use(&$called) {
-                $this->assertInstanceOf(ResourceObject::class, $resource);
-                $called = true;
-            });
-
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
-
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->onKernelView($event);
-
-        $this->assertTrue($called);
-    }
-
-    public function testDocumentCallbackWithIterator()
-    {
-        $object   = new ResourceObject('123', 'Qwerty');
-        $iterator = new \ArrayIterator([$object]);
-
-        $view = $this->createMock(JsonApiIteratorView::class);
-
-        $view->method('getIterator')
-            ->willReturn($iterator);
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $view->method('hasDocumentCallback')
-            ->willReturn(true);
-
-        $called = false;
-
-        $view->expects($this->once())
-            ->method('getDocumentCallback')
-            ->willReturn(function($resource) use(&$called) {
-                $this->assertInstanceOf(ResourceCollectionDocument::class, $resource);
-                $called = true;
-            });
-
-        $event = $this->createMock(GetResponseForControllerResultEvent::class);
-
-        $event->expects($this->once())
-            ->method('getControllerResult')
-            ->willReturn($view);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-        $listener = new JsonApiViewListener($provider);
-        $listener->onKernelView($event);
-
-        $this->assertTrue($called);
-    }
-
-    public function testDocumentLinks()
-    {
-        $object = new ResourceObject('123', 'Qwerty');
-
-        $linkDefinition = $this->createLinkDefinition('test_name', 'test_repository', 'test_link');
-
-        $view = $this->createMock(JsonApiObjectView::class);
-
-        $view->method('getObject')
-            ->willReturn($object);
-
-        $view->method('getStatusCode')
-            ->willReturn(200);
-
-        $view->expects($this->once())
-            ->method('getDocumentLinks')
-            ->willReturn([$linkDefinition]);
-
-        $event = $this->createEvent($view, '{"links":{"test_name":"http:\/\/test.com"},"jsonapi":{"version":"1.0"},"data":{"id":"123","type":"Qwerty"}}');
-
-        $provider = $this->createLinkProvider('test_repository', 'test_link', 'http://test.com');
-
-        $listener = new JsonApiViewListener($provider);
-        $listener->onKernelView($event);
-    }
-
-    /**
-     * Create mock of object-handler
-     *
-     * @param  string $type         Common for all objects
-     * @param  array  $objects      List of objects expected to get handled
-     * @param  array  $resourceData Common for all objects
-     * @return ObjectHandlerInterface
-     */
-    protected function createObjectHandler(string $type, array $objects, array $resourceData): ObjectHandlerInterface
-    {
-        $resource = $this->createMock(ResourceObject::class);
-
-        $resource->method('toArray')
-            ->willReturn($resourceData);
-
-        $handler = $this->createMock(ObjectHandlerInterface::class);
-
-        $handler->expects($this->once())
-            ->method('supports')
-            ->with($type)
-            ->willReturn(true);
-
-        foreach ($objects as $offset => $object)
-        {
-            $handler->expects($this->at($offset + 1))
-                ->method('handle')
-                ->with($object)
-                ->willReturn($resource);
-        }
-
-        return $handler;
-    }
-
-    /**
-     * Create mock of link's definition
-     *
-     * @param  string $name
-     * @param  string $repositoryName
-     * @param  string $linkName
-     * @return LinkDefinition
-     */
-    protected function createLinkDefinition(string $name, string $repositoryName, string $linkName): LinkDefinition
-    {
-        $link = $this->createMock(LinkDefinition::class);
-
-        $link->expects($this->once())
-            ->method('getName')
-            ->willReturn($name);
-
-        $link->expects($this->once())
-            ->method('getRepositoryName')
-            ->willReturn($repositoryName);
-
-        $link->expects($this->once())
-            ->method('getLinkName')
-            ->willReturn($linkName);
-
-        return $link;
-    }
-
-    /**
-     * Create mock of repository provider
-     *
-     * @param  string $repositoryName
-     * @param  string $linkName
-     * @param  string $reference
-     * @return RepositoryProvider
-     */
-    protected function createLinkProvider(string $repositoryName, string $linkName, string $reference): RepositoryProvider
-    {
-        $link = $this->createMock(LinkData::class);
-
-        $link->expects($this->once())
-            ->method('getReference')
-            ->willReturn($reference);
-
-        $repository = $this->createMock(RepositoryInterface::class);
-
-        $repository->expects($this->once())
-            ->method('getLink')
-            ->with($linkName)
-            ->willReturn($link);
-
-        $provider = $this->createMock(RepositoryProvider::class);
-
-        $provider->expects($this->once())
-            ->method('getRepository')
-            ->with($repositoryName)
-            ->willReturn($repository);
-
-        return $provider;
     }
 
     /**

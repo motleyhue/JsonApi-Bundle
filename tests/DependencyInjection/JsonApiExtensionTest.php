@@ -6,6 +6,7 @@ namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Loader\LoaderInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -16,11 +17,11 @@ use Symfony\Component\DependencyInjection\Reference;
 class JsonApiExtensionTest extends TestCase
 {
     /**
-     * @dataProvider configurationProvider
+     * @dataProvider mappersProvider
      *
      * @param array $config
      */
-    public function testLoadExtension(array $config)
+    public function testLoadExtensionWithMappers(array $config)
     {
         $container = $this->createMock(ContainerBuilder::class);
 
@@ -63,13 +64,107 @@ class JsonApiExtensionTest extends TestCase
         $extension->load($config, $container);
     }
 
-    public function configurationProvider(): array
+    /**
+     * @dataProvider endpointClientsProvider
+     *
+     * @param array $config
+     */
+    public function testLoadExtensionWithClients(array $config)
+    {
+        $container = $this->createMock(ContainerBuilder::class);
+
+        $container->expects($this->at(0))
+            ->method('getParameter')
+            ->with('mrtn_json_api.route_repository.class')
+            ->willReturn('Test\\RouteRepository');
+
+        $container->expects($this->at(1))
+            ->method('getParameter')
+            ->with('mrtn_json_api.resource_http_client.class')
+            ->willReturn('Test\\ResourceClient');
+
+        $container->expects($this->at(2))
+            ->method('setDefinition')
+            ->with(
+                'mrtn_json_api.route_repository.test_client',
+                $this->isInstanceOf(Definition::class)
+            )
+            ->willReturnCallback(
+                function(string $id, Definition $definition)
+                {
+                    $this->assertSame('Test\\RouteRepository', $definition->getClass());
+                    $this->assertFalse($definition->isPublic());
+
+                    $this->assertSame('https://test.service.com', $definition->getArgument(0));
+                    $this->assertSame(
+                        [
+                            'test_resource' => [
+                                'path'    => '/v1/test/{id}',
+                                'methods' => ['GET', 'DELETE']
+                            ]
+                        ],
+                        $definition->getArgument(1)
+                    );
+                }
+            );
+
+        $container->expects($this->at(3))
+            ->method('setDefinition')
+            ->with(
+                'mrtn_json_api.http_client.test_client',
+                $this->isInstanceOf(Definition::class)
+            )
+            ->willReturnCallback(
+                function(string $id, Definition $definition)
+                {
+                    $this->assertSame('Test\\ResourceClient', $definition->getClass());
+                    $this->assertTrue($definition->isPublic());
+
+                    $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+                    $this->assertSame('mrtn_json_api.http_client', (string) $definition->getArgument(0));
+
+                    $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
+                    $this->assertSame('mrtn_json_api.route_repository.test_client', (string) $definition->getArgument(1));
+                }
+            );
+
+        $loader = $this->createMock(LoaderInterface::class);
+
+        $extension = new JsonApiExtension($loader);
+        $extension->load($config, $container);
+    }
+
+    public function mappersProvider(): array
     {
         return [[[
             'mrtn_json_api' => [
                 'mappers' => [
                     'default' => [
                         'handlers' => ['test_handler_name']
+                    ]
+                ]
+            ]
+        ]]];
+    }
+
+    public function endpointClientsProvider(): array
+    {
+        return [[[
+            'mrtn_json_api' => [
+                'mappers' => [],
+
+                'http_clients' => [
+                    'test_client' => [
+                        'base_url'  => 'https://test.service.com',
+                        'resources' => [
+                            'test_resource' => [
+                                'path'    => '/v1/test/{id}',
+                                'methods' => [
+                                    'GET'    => [],
+                                    'DELETE' => []
+                                ]
+                            ]
+                        ]
                     ]
                 ]
             ]

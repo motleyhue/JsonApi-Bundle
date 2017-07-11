@@ -44,7 +44,7 @@ class ConfigurationTest extends TestCase
         $builder->addCompilerPass(new ObjectMapperCompilerPass());
 
         $builder->registerExtension(new JsonApiExtension());
-        $builder->loadFromExtension('mrtn_json_api');
+        $builder->loadFromExtension(JsonApiExtension::ALIAS);
 
         $builder->compile();
 

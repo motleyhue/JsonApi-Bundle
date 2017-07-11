@@ -3,9 +3,15 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Builder\NodeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 
+/**
+ * Class JsonApiConfiguration
+ *
+ * @package Mikemirten\Bundle\JsonApiBundle\DependencyInjection
+ */
 class JsonApiConfiguration implements ConfigurationInterface
 {
     /**
@@ -14,9 +20,22 @@ class JsonApiConfiguration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $builder  = new TreeBuilder();
-        $children = $builder->root('mrtn_json_api')->children();
+        $children = $builder->root(JsonApiExtension::ALIAS)->children();
 
-        $children->arrayNode('mappers')
+        $this->processMappers($children);
+        $this->processClients($children);
+
+        return $builder;
+    }
+
+    /**
+     * Process mappers
+     *
+     * @param NodeBuilder $builder
+     */
+    protected function processMappers(NodeBuilder $builder): void
+    {
+        $builder->arrayNode('mappers')
             ->defaultValue(['default' => [
                 'handlers' => [
                     'attribute',
@@ -28,7 +47,48 @@ class JsonApiConfiguration implements ConfigurationInterface
                 ->children()
                     ->arrayNode('handlers')
                         ->prototype('scalar');
+    }
 
-        return $builder;
+    /**
+     * Process http-clients
+     *
+     * @param NodeBuilder $builder
+     */
+    protected function processClients(NodeBuilder $builder): void
+    {
+        $children = $builder->arrayNode('http_clients')
+            ->prototype('array')
+                ->children()
+                    ->scalarNode('base_url')
+                        ->isRequired()
+                        ->cannotBeEmpty()
+                    ->end()
+
+                    ->arrayNode('decorators')
+                        ->prototype('scalar')
+                        ->end()
+                    ->end();
+
+        $this->processEndpoints($children);
+    }
+
+    /**
+     * Process endpoints of client
+     *
+     * @param NodeBuilder $builder
+     */
+    protected function processEndpoints(NodeBuilder $builder): void
+    {
+        $builder->arrayNode('resources')
+            ->prototype('array')
+                ->children()
+                    ->scalarNode('path')
+                        ->isRequired()
+                        ->cannotBeEmpty()
+                    ->end()
+
+                    ->arrayNode('methods')
+                        ->prototype('array')
+                            ->children();
     }
 }

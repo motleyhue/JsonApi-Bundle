@@ -5,6 +5,7 @@ namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
@@ -13,6 +14,8 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class JsonApiExtension extends Extension
 {
+    const ALIAS = 'mrtn_json_api';
+
     /**
      * Configuration loader
      *
@@ -45,8 +48,12 @@ class JsonApiExtension extends Extension
         $loader->load('mapper.yml');
         $loader->load('http_client.yml');
 
-        if (isset($config['mappers'])) {
+        if (! empty($config['mappers'])) {
             $this->createMappers($config['mappers'], $container);
+        }
+
+        if (! empty($config['http_clients'])) {
+            $this->createResourceClients($config['http_clients'], $container);
         }
     }
 
@@ -108,10 +115,62 @@ class JsonApiExtension extends Extension
     }
 
     /**
+     * Create resources-based clients
+     *
+     * @param array            $config
+     * @param ContainerBuilder $container
+     */
+    protected function createResourceClients(array $config, ContainerBuilder $container): void
+    {
+        $repositoryClass = $container->getParameter('mrtn_json_api.route_repository.class');
+        $clientClass     = $container->getParameter('mrtn_json_api.resource_http_client.class');
+
+        foreach ($config as $name => $definition)
+        {
+            $routes = $this->createRoutesDefinition($definition['resources']);
+
+            $repository = new Definition($repositoryClass, [$definition['base_url'], $routes]);
+            $repository->setPublic(false);
+
+            $client = new Definition($clientClass, [
+                new Reference('mrtn_json_api.http_client'),
+                new Reference('mrtn_json_api.route_repository.' . $name)
+            ]);
+
+            $container->setDefinition('mrtn_json_api.route_repository.' . $name, $repository);
+            $container->setDefinition('mrtn_json_api.http_client.' . $name, $client);
+        }
+    }
+
+    /**
+     * Create definition of routes for a route repository by a collection of endpoints
+     *
+     * @param  array $resources
+     * @return array
+     */
+    protected function createRoutesDefinition(array $resources): array
+    {
+        $definition = [];
+
+        foreach ($resources as $name => $resource)
+        {
+            $methods = array_keys($resource['methods']);
+            $methods = array_map('strtoupper', $methods);
+
+            $definition[$name] = [
+                'path'    => trim($resource['path']),
+                'methods' => array_map('trim', $methods)
+            ];
+        }
+
+        return $definition;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function getAlias()
     {
-        return 'mrtn_json_api';
+        return self::ALIAS;
     }
 }

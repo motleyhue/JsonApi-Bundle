@@ -33,7 +33,7 @@ class JsonApiConfiguration implements ConfigurationInterface
      *
      * @param NodeBuilder $builder
      */
-    protected function processMappers(NodeBuilder $builder): void
+    protected function processMappers(NodeBuilder $builder)
     {
         $builder->arrayNode('mappers')
             ->defaultValue(['default' => [
@@ -54,7 +54,7 @@ class JsonApiConfiguration implements ConfigurationInterface
      *
      * @param NodeBuilder $builder
      */
-    protected function processClients(NodeBuilder $builder): void
+    protected function processClients(NodeBuilder $builder)
     {
         $children = $builder->arrayNode('http_clients')
             ->prototype('array')
@@ -77,7 +77,7 @@ class JsonApiConfiguration implements ConfigurationInterface
      *
      * @param NodeBuilder $builder
      */
-    protected function processEndpoints(NodeBuilder $builder): void
+    protected function processEndpoints(NodeBuilder $builder)
     {
         $builder->arrayNode('resources')
             ->prototype('array')

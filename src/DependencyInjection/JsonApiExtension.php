@@ -120,7 +120,7 @@ class JsonApiExtension extends Extension
      * @param array            $config
      * @param ContainerBuilder $container
      */
-    protected function createResourceClients(array $config, ContainerBuilder $container): void
+    protected function createResourceClients(array $config, ContainerBuilder $container)
     {
         $repositoryClass = $container->getParameter('mrtn_json_api.route_repository.class');
         $clientClass     = $container->getParameter('mrtn_json_api.resource_http_client.class');

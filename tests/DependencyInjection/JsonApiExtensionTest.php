@@ -80,7 +80,7 @@ class JsonApiExtensionTest extends TestCase
 
         $container->expects($this->at(1))
             ->method('getParameter')
-            ->with('mrtn_json_api.resource_http_client.class')
+            ->with('mrtn_json_api.resource_client.class')
             ->willReturn('Test\\ResourceClient');
 
         $container->expects($this->at(2))
@@ -111,7 +111,7 @@ class JsonApiExtensionTest extends TestCase
         $container->expects($this->at(3))
             ->method('setDefinition')
             ->with(
-                'mrtn_json_api.http_client.test_client',
+                'mrtn_json_api.resource_client.test_client',
                 $this->isInstanceOf(Definition::class)
             )
             ->willReturnCallback(
@@ -153,7 +153,7 @@ class JsonApiExtensionTest extends TestCase
             'mrtn_json_api' => [
                 'mappers' => [],
 
-                'http_clients' => [
+                'resource_clients' => [
                     'test_client' => [
                         'base_url'  => 'https://test.service.com',
                         'resources' => [

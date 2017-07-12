@@ -2,7 +2,7 @@ parameters:
     mrtn_json_api.http_client.class:                'Mikemirten\Component\JsonApi\HttpClient\HttpClient'
     mrtn_json_api.http_client.adapter.guzzle.class: 'Mikemirten\Component\JsonApi\HttpClient\Adapter\GuzzleAdapter'
     mrtn_json_api.route_repository.class:           'Mikemirten\Bundle\JsonApiBundle\Routing\RouteRepository'
-    mrtn_json_api.resource_http_client.class:       'Mikemirten\Bundle\JsonApiBundle\HttpClient\ResourceBasedClient'
+    mrtn_json_api.resource_client.class:            'Mikemirten\Bundle\JsonApiBundle\HttpClient\ResourceBasedClient'
     mrtn_json_api.http_client.guzzle.class:         'GuzzleHttp\Client'
 
     mrtn_json_api.http_client.decorator.event_dispatcher.class: 'Mikemirten\Component\JsonApi\HttpClient\Decorator\SymfonyEventDispatcherDecorator'

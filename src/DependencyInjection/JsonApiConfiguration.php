@@ -56,7 +56,7 @@ class JsonApiConfiguration implements ConfigurationInterface
      */
     protected function processClients(NodeBuilder $builder)
     {
-        $children = $builder->arrayNode('http_clients')
+        $children = $builder->arrayNode('resource_clients')
             ->prototype('array')
                 ->children()
                     ->scalarNode('base_url')

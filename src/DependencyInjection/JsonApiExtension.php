@@ -52,8 +52,8 @@ class JsonApiExtension extends Extension
             $this->createMappers($config['mappers'], $container);
         }
 
-        if (! empty($config['http_clients'])) {
-            $this->createResourceClients($config['http_clients'], $container);
+        if (! empty($config['resource_clients'])) {
+            $this->createResourceClients($config['resource_clients'], $container);
         }
     }
 
@@ -123,7 +123,7 @@ class JsonApiExtension extends Extension
     protected function createResourceClients(array $config, ContainerBuilder $container)
     {
         $repositoryClass = $container->getParameter('mrtn_json_api.route_repository.class');
-        $clientClass     = $container->getParameter('mrtn_json_api.resource_http_client.class');
+        $clientClass     = $container->getParameter('mrtn_json_api.resource_client.class');
 
         foreach ($config as $name => $definition)
         {
@@ -138,7 +138,7 @@ class JsonApiExtension extends Extension
             ]);
 
             $container->setDefinition('mrtn_json_api.route_repository.' . $name, $repository);
-            $container->setDefinition('mrtn_json_api.http_client.' . $name, $client);
+            $container->setDefinition('mrtn_json_api.resource_client.' . $name, $client);
         }
     }
 

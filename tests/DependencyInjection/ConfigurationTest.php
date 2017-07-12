@@ -7,6 +7,7 @@ use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\DocumentHydrato
 use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\ObjectMapperCompilerPass;
 use Mikemirten\Bundle\JsonApiBundle\DependencyInjection\Compiler\ViewListenerCompilerPass;
 use Mikemirten\Bundle\JsonApiBundle\EventListener\JsonApiViewListener;
+use Mikemirten\Bundle\JsonApiBundle\HttpClient\ResourceBasedClient;
 use Mikemirten\Component\JsonApi\HttpClient\HttpClient;
 use Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator;
 use Mikemirten\Component\JsonApi\Mapper\ObjectMapper;
@@ -30,8 +31,12 @@ class ConfigurationTest extends TestCase
      * 1. It compiles with no errors.
      * 2. It is able to initialize and provide dependencies with no errors.
      * 3. The dependencies are instances of expected types.
+     *
+     * @dataProvider getConfiguration
+     *
+     * @param array $configuration
      */
-    public function testConfiguration()
+    public function testConfiguration(array $configuration)
     {
         $builder = new ContainerBuilder();
         $locator = new FileLocator(__DIR__ . '/../../src/Resources/config');
@@ -44,7 +49,7 @@ class ConfigurationTest extends TestCase
         $builder->addCompilerPass(new ObjectMapperCompilerPass());
 
         $builder->registerExtension(new JsonApiExtension());
-        $builder->loadFromExtension(JsonApiExtension::ALIAS);
+        $builder->loadFromExtension(JsonApiExtension::ALIAS, $configuration);
 
         $builder->compile();
 
@@ -66,6 +71,11 @@ class ConfigurationTest extends TestCase
         $this->assertInstanceOf(
             JsonApiViewListener::class,
             $builder->get('mrtn_json_api.kernel_view.listener')
+        );
+
+        $this->assertInstanceOf(
+            ResourceBasedClient::class,
+            $builder->get('mrtn_json_api.resource_client.test_client')
         );
     }
 
@@ -95,5 +105,30 @@ class ConfigurationTest extends TestCase
             'event_dispatcher',
             $this->createMock(EventDispatcherInterface::class)
         );
+    }
+
+    /**
+     * Get configuration for the bundle's extension
+     *
+     * @return array
+     */
+    public function getConfiguration(): array
+    {
+        return [[[
+            'resource_clients' => [
+                'test_client' => [
+                    'base_url'  => 'https://test.com',
+                    'resources' => [
+                        'test_resource' => [
+                            'path'    => '/v1/test',
+                            'methods' => [
+                                'GET'  => [],
+                                'POST' => []
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+        ]]];
     }
 }

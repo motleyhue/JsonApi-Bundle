@@ -84,7 +84,7 @@ class ResourceBasedClient
      */
     public function __call(string $name, array $arguments): ResponseInterface
     {
-        array_unshift(strtoupper($name), $arguments);
+        array_unshift($arguments, strtoupper($name));
 
         return call_user_func_array([$this, 'request'], $arguments);
     }

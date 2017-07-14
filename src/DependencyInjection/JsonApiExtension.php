@@ -127,19 +127,44 @@ class JsonApiExtension extends Extension
 
         foreach ($config as $name => $definition)
         {
+            $this->createEventDispatcherDecorator($container, $name);
+
             $routes = $this->createRoutesDefinition($definition['resources']);
 
             $repository = new Definition($repositoryClass, [$definition['base_url'], $routes]);
             $repository->setPublic(false);
 
             $client = new Definition($clientClass, [
-                new Reference('mrtn_json_api.http_client'),
+                new Reference('mrtn_json_api.http_client.decorator.event_dispatcher.' . $name),
                 new Reference('mrtn_json_api.route_repository.' . $name)
             ]);
 
             $container->setDefinition('mrtn_json_api.route_repository.' . $name, $repository);
             $container->setDefinition('mrtn_json_api.resource_client.' . $name, $client);
         }
+    }
+
+    /**
+     * Create event dispatcher decorator for resource-based http-client
+     *
+     * @param ContainerBuilder $container
+     * @param string           $name
+     */
+    protected function createEventDispatcherDecorator(ContainerBuilder $container, string $name)
+    {
+        $class = $container->getParameter('mrtn_json_api.http_client.decorator.event_dispatcher.class');
+
+        $decorator = new Definition($class, [
+            new Reference('mrtn_json_api.http_client'),
+            new Reference('event_dispatcher'),
+            sprintf('mrtn_json_api.resource_client.%s.request', $name),
+            sprintf('mrtn_json_api.resource_client.%s.response', $name),
+            sprintf('mrtn_json_api.resource_client.%s.exception', $name)
+        ]);
+
+        $decorator->setPublic(false);
+
+        $container->setDefinition('mrtn_json_api.http_client.decorator.event_dispatcher.' . $name, $decorator);
     }
 
     /**

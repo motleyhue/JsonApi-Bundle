@@ -30,3 +30,6 @@ services:
         arguments:
             - '@mrtn_json_api.http_client.adapter.guzzle'
             - '@event_dispatcher'
+            - 'mrtn_json_api.http_client.request'
+            - 'mrtn_json_api.http_client.response'
+            - 'mrtn_json_api.http_client.exception'

@@ -8,7 +8,7 @@ parameters:
 
     mrtn_json_api.annotation_reader.class: 'Doctrine\Common\Annotations\AnnotationReader'
 
-    mrtn_json_api.cache.file.class: 'Symfony\Component\Cache\Simple\FilesystemCache'
+    mrtn_json_api.cache.file.class: 'Symfony\Component\Cache\Adapter\FilesystemAdapter'
 
 services:
     mrtn_json_api.document.parameter_converter:

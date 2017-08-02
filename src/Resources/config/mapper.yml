@@ -10,6 +10,9 @@ parameters:
 
     mrtn_json_api.object_mapper.datatype_handler.datetime.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeHandler\DateTimeHandler'
 
+    mrtn_json_api.object_mapper.definition_provider.annotation.class: 'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationDefinitionProvider'
+    mrtn_json_api.object_mapper.definition_provider.cached.class:     'Mikemirten\Component\JsonApi\Mapper\Definition\CachedProvider'
+
     mrtn_json_api.object_mapper.link_repository_provider.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\LinkRepository\RepositoryProvider'
 
     mrtn_json_api.object_mapper.property_accessor.symfony.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\PropertyAccessor\SymfonyPropertyAccessor'
@@ -21,7 +24,7 @@ services:
         class: '%mrtn_json_api.object_mapper.class%'
         abstract: true
         arguments:
-            - '@mrtn_json_api.object_mapper.definition_provider.annotation'
+            - '@mrtn_json_api.object_mapper.definition_provider'
             - '@mrtn_json_api.object_mapper.handler.rigid_identifier'
             - '@mrtn_json_api.object_mapper.handler.class_based_type'
 
@@ -75,6 +78,19 @@ services:
         public: false
         tags:
             - { name: 'mrtn_json_api.object_mapper.datatype_handler' }
+
+    mrtn_json_api.object_mapper.definition_provider.annotation:
+        class: '%mrtn_json_api.object_mapper.definition_provider.annotation.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.annotation_reader'
+
+    mrtn_json_api.object_mapper.definition_provider.cached:
+        class: '%mrtn_json_api.object_mapper.definition_provider.cached.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.object_mapper.definition_provider.annotation'
+            - '@mrtn_json_api.cache.definition'
 
     mrtn_json_api.object_mapper.property_accessor.symfony:
         class: '%mrtn_json_api.object_mapper.property_accessor.symfony.class%'

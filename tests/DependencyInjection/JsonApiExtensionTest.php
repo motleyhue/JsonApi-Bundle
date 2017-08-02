@@ -75,20 +75,29 @@ class JsonApiExtensionTest extends TestCase
 
         $container->expects($this->at(0))
             ->method('getParameter')
+            ->with('kernel.environment')
+            ->willReturn('prod');
+
+        $container->expects($this->at(1))
+            ->method('setAlias')
+            ->with('mrtn_json_api.object_mapper.definition_provider');
+
+        $container->expects($this->at(2))
+            ->method('getParameter')
             ->with('mrtn_json_api.route_repository.class')
             ->willReturn('Test\\RouteRepository');
 
-        $container->expects($this->at(1))
+        $container->expects($this->at(3))
             ->method('getParameter')
             ->with('mrtn_json_api.resource_client.class')
             ->willReturn('Test\\ResourceClient');
 
-        $container->expects($this->at(2))
+        $container->expects($this->at(4))
             ->method('getParameter')
             ->with('mrtn_json_api.http_client.decorator.event_dispatcher.class')
             ->willReturn('Test\\EventDispatcherDecorator');
 
-        $container->expects($this->at(3))
+        $container->expects($this->at(5))
             ->method('setDefinition')
             ->with(
                 'mrtn_json_api.http_client.decorator.event_dispatcher.test_client',
@@ -123,7 +132,7 @@ class JsonApiExtensionTest extends TestCase
                 }
             );
 
-        $container->expects($this->at(4))
+        $container->expects($this->at(6))
             ->method('setDefinition')
             ->with(
                 'mrtn_json_api.route_repository.test_client',
@@ -148,7 +157,7 @@ class JsonApiExtensionTest extends TestCase
                 }
             );
 
-        $container->expects($this->at(5))
+        $container->expects($this->at(7))
             ->method('setDefinition')
             ->with(
                 'mrtn_json_api.resource_client.test_client',

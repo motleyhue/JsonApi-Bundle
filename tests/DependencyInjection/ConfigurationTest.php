@@ -36,11 +36,14 @@ class ConfigurationTest extends TestCase
      *
      * @dataProvider getConfiguration
      *
-     * @param array $configuration
+     * @param array  $configuration
+     * @param string $environment
      */
-    public function testConfiguration(array $configuration)
+    public function testConfiguration(array $configuration, string $environment)
     {
         $builder = new ContainerBuilder();
+        $builder->setParameter('kernel.cache_dir', '/tmp');
+        $builder->setParameter('kernel.environment', $environment);
 
         $this->registerMocks($builder);
 
@@ -86,9 +89,11 @@ class ConfigurationTest extends TestCase
      *
      * @param array $configuration
      */
-    public function testEventDispatching(array $configuration)
+    public function testEventDispatching(array $configuration, string $environment)
     {
         $builder = new ContainerBuilder();
+        $builder->setParameter('kernel.cache_dir', '/tmp');
+        $builder->setParameter('kernel.environment', $environment);
 
         $this->registerMocks($builder);
 
@@ -219,7 +224,7 @@ class ConfigurationTest extends TestCase
      */
     public function getConfiguration(): array
     {
-        return [[[
+        $config = [
             'resource_clients' => [
                 'test_client' => [
                     'base_url'  => 'https://test.com',
@@ -234,6 +239,11 @@ class ConfigurationTest extends TestCase
                     ]
                 ]
             ]
-        ]]];
+        ];
+
+        return [
+            [ $config, 'dev'  ],
+            [ $config, 'prod' ]
+        ];
     }
 }

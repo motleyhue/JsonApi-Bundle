@@ -48,6 +48,8 @@ class JsonApiExtension extends Extension
         $loader->load('mapper.yml');
         $loader->load('http_client.yml');
 
+        $this->handleMappingDefinitionProvider($container);
+
         if (! empty($config['mappers'])) {
             $this->createMappers($config['mappers'], $container);
         }
@@ -55,6 +57,30 @@ class JsonApiExtension extends Extension
         if (! empty($config['resource_clients'])) {
             $this->createResourceClients($config['resource_clients'], $container);
         }
+    }
+
+    /**
+     * Handle mapping definition provider depends on environment
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function handleMappingDefinitionProvider(ContainerBuilder $container)
+    {
+        $env = $container->getParameter('kernel.environment');
+
+        if ($env === 'prod') {
+            $container->setAlias(
+                'mrtn_json_api.object_mapper.definition_provider',
+                'mrtn_json_api.object_mapper.definition_provider.cached'
+            );
+
+            return;
+        }
+
+        $container->setAlias(
+            'mrtn_json_api.object_mapper.definition_provider',
+            'mrtn_json_api.object_mapper.definition_provider.annotation'
+        );
     }
 
     /**

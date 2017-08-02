@@ -4,11 +4,12 @@
 
     "require": {
         "php": ">=7.0",
-        "mikemirten/json-api": ">=0.22",
+        "mikemirten/json-api": ">=0.23.1",
         "sensio/framework-extra-bundle": "~3.0",
         "symfony/dependency-injection": "~3.0",
         "symfony/yaml": "~3.0",
-        "symfony/property-access": "~3.0"
+        "symfony/property-access": "~3.0",
+        "symfony/cache": "^3.3"
     },
 
     "require-dev": {

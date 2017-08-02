@@ -8,7 +8,7 @@ parameters:
 
     mrtn_json_api.annotation_reader.class: 'Doctrine\Common\Annotations\AnnotationReader'
 
-    mrtn_json_api.object_mapper.definition_provider.annotation.class: 'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationDefinitionProvider'
+    mrtn_json_api.cache.file.class: 'Symfony\Component\Cache\Simple\FilesystemCache'
 
 services:
     mrtn_json_api.document.parameter_converter:
@@ -37,8 +37,10 @@ services:
         class: '%mrtn_json_api.annotation_reader.class%'
         public: false
 
-    mrtn_json_api.object_mapper.definition_provider.annotation:
-        class: '%mrtn_json_api.object_mapper.definition_provider.annotation.class%'
+    mrtn_json_api.cache.definition:
+        class: '%mrtn_json_api.cache.file.class%'
         public: false
         arguments:
-            - '@mrtn_json_api.annotation_reader'
+            - ''
+            - 0
+            - '%kernel.cache_dir%/mrtn_json_api/mapping_definition'

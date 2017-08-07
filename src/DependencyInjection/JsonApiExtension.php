@@ -57,6 +57,32 @@ class JsonApiExtension extends Extension
         if (! empty($config['resource_clients'])) {
             $this->createResourceClients($config['resource_clients'], $container);
         }
+
+        if (! empty($config['http_client'])) {
+            $this->processHttpClient($config['http_client'], $container);
+        }
+    }
+
+    /**
+     * Process http client
+     *
+     * @param array            $config
+     * @param ContainerBuilder $container
+     */
+    protected function processHttpClient(array $config, ContainerBuilder $container)
+    {
+        if (empty($config['guzzle_service'])) {
+            return;
+        }
+
+        if ($container->hasDefinition($config['guzzle_service'])) {
+            throw new \LogicException(sprintf('Service "%s" has not been defined.'));
+        }
+
+        $container->getDefinition('mrtn_json_api.http_client.adapter.guzzle')
+            ->setArguments([
+                new Reference($config['guzzle_service'])
+            ]);
     }
 
     /**

@@ -14,6 +14,7 @@ use Mikemirten\Component\JsonApi\HttpClient\HttpClient;
 use Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator;
 use Mikemirten\Component\JsonApi\Mapper\ObjectMapper;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -79,6 +80,43 @@ class ConfigurationTest extends TestCase
             ResourceBasedClient::class,
             $builder->get('mrtn_json_api.resource_client.test_client')
         );
+    }
+
+    /**
+     * Test of customized guzzle client
+     */
+    public function testHttpClientConfiguration()
+    {
+        $configuration = [
+            'http_client' => [
+                'guzzle_service' => 'customized_guzzle_client'
+            ]
+        ];
+
+        $builder = new ContainerBuilder();
+        $builder->setParameter('kernel.cache_dir', '/tmp');
+        $builder->setParameter('kernel.environment', 'prod');
+
+        $this->registerMocks($builder);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $request  = $this->createMock(RequestInterface::class);
+        $guzzle   = $this->createMock('GuzzleHttp\ClientInterface');
+
+        $response->method('getHeader')
+            ->willReturn([]);
+
+        $guzzle->expects($this->once())
+            ->method('send')
+            ->with($request)
+            ->willReturn($response);
+
+        $builder->set('customized_guzzle_client', $guzzle);
+        $builder->registerExtension(new JsonApiExtension());
+        $builder->loadFromExtension(JsonApiExtension::ALIAS, $configuration);
+        $builder->compile();
+
+        $builder->get('mrtn_json_api.http_client')->request($request);
     }
 
     /**

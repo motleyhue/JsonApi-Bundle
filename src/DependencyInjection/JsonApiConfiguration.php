@@ -23,7 +23,8 @@ class JsonApiConfiguration implements ConfigurationInterface
         $children = $builder->root(JsonApiExtension::ALIAS)->children();
 
         $this->processMappers($children);
-        $this->processClients($children);
+        $this->processHttpClient($children);
+        $this->processResourceClients($children);
 
         return $builder;
     }
@@ -50,11 +51,24 @@ class JsonApiConfiguration implements ConfigurationInterface
     }
 
     /**
-     * Process http-clients
+     * Process http-client
      *
      * @param NodeBuilder $builder
      */
-    protected function processClients(NodeBuilder $builder)
+    protected function processHttpClient(NodeBuilder $builder)
+    {
+        $builder->arrayNode('http_client')
+            ->children()
+                ->scalarNode('guzzle_service')
+                ->cannotBeEmpty();
+    }
+
+    /**
+     * Process resource-based clients
+     *
+     * @param NodeBuilder $builder
+     */
+    protected function processResourceClients(NodeBuilder $builder)
     {
         $children = $builder->arrayNode('resource_clients')
             ->prototype('array')

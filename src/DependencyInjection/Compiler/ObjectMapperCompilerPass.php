@@ -45,7 +45,7 @@ class ObjectMapperCompilerPass implements CompilerPassInterface
 
     protected function processDataTypeHandlers(ContainerBuilder $container)
     {
-        $definition = $container->findDefinition('mrtn_json_api.object_mapper.handler.attribute');
+        $definition = $container->findDefinition('mrtn_json_api.object_mapper.datatype_manager');
         $extensions = $container->findTaggedServiceIds('mrtn_json_api.object_mapper.datatype_handler');
 
         foreach ($extensions as $id => $tags) {

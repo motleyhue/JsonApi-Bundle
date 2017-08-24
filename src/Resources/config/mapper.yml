@@ -8,6 +8,8 @@ parameters:
     mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
     mrtn_json_api.object_mapper.handler.link.class:                  'Mikemirten\Component\JsonApi\Mapper\Handler\LinkHandler\LinkHandler'
 
+    mrtn_json_api.object_mapper.datatype_manager.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeManager'
+
     mrtn_json_api.object_mapper.datatype_handler.datetime.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeHandler\DateTimeHandler'
 
     mrtn_json_api.object_mapper.definition_provider.annotation.class: 'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationDefinitionProvider'
@@ -41,6 +43,8 @@ services:
     mrtn_json_api.object_mapper.handler.attribute:
         class: '%mrtn_json_api.object_mapper.handler.attribute.class%'
         public: false
+        arguments:
+            - '@mrtn_json_api.object_mapper.datatype_manager'
         tags:
             - { name: 'mrtn_json_api.object_mapper.handler', alias: 'attribute' }
 
@@ -71,6 +75,10 @@ services:
 
     mrtn_json_api.object_mapper.link_repository_provider:
         class: '%mrtn_json_api.object_mapper.link_repository_provider.class%'
+        public: false
+
+    mrtn_json_api.object_mapper.datatype_manager:
+        class: '%mrtn_json_api.object_mapper.datatype_manager.class%'
         public: false
 
     mrtn_json_api.object_mapper.datatype_handler.datetime:

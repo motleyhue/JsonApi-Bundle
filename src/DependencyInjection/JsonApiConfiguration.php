@@ -37,6 +37,10 @@ class JsonApiConfiguration implements ConfigurationInterface
     protected function processMappers(NodeBuilder $builder)
     {
         $builder->arrayNode('mappers')
+
+            /* @see https://github.com/symfony/symfony/issues/12304 */
+            ->useAttributeAsKey(true)
+
             ->defaultValue(['default' => [
                 'handlers' => [
                     'attribute',
@@ -71,6 +75,10 @@ class JsonApiConfiguration implements ConfigurationInterface
     protected function processResourceClients(NodeBuilder $builder)
     {
         $children = $builder->arrayNode('resource_clients')
+
+            /* @see https://github.com/symfony/symfony/issues/12304 */
+            ->useAttributeAsKey(true)
+
             ->prototype('array')
                 ->children()
                     ->scalarNode('base_url')
@@ -94,6 +102,10 @@ class JsonApiConfiguration implements ConfigurationInterface
     protected function processEndpoints(NodeBuilder $builder)
     {
         $builder->arrayNode('resources')
+
+            /* @see https://github.com/symfony/symfony/issues/12304 */
+            ->useAttributeAsKey(true)
+
             ->prototype('array')
                 ->children()
                     ->scalarNode('path')

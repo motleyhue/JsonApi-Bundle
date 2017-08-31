@@ -8,6 +8,10 @@ parameters:
     mrtn_json_api.object_mapper.handler.relationship.class:          'Mikemirten\Component\JsonApi\Mapper\Handler\RelationshipHandler'
     mrtn_json_api.object_mapper.handler.link.class:                  'Mikemirten\Component\JsonApi\Mapper\Handler\LinkHandler\LinkHandler'
 
+    mrtn_json_api.object_mapper.annotation_processor.class.class:        'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationProcessor\ClassProcessor'
+    mrtn_json_api.object_mapper.annotation_processor.attribute.class:    'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationProcessor\AttributeProcessor'
+    mrtn_json_api.object_mapper.annotation_processor.relationship.class: 'Mikemirten\Component\JsonApi\Mapper\Definition\AnnotationProcessor\RelationshipProcessor'
+
     mrtn_json_api.object_mapper.datatype_manager.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeManager'
 
     mrtn_json_api.object_mapper.datatype_handler.datetime.class: 'Mikemirten\Component\JsonApi\Mapper\Handler\DataTypeHandler\DateTimeHandler'
@@ -94,11 +98,31 @@ services:
         tags:
             - { name: 'mrtn_json_api.object_mapper.datatype_handler' }
 
-    mrtn_json_api.object_mapper.definition_provider.annotation:
-        class: '%mrtn_json_api.object_mapper.definition_provider.annotation.class%'
+    mrtn_json_api.object_mapper.annotation_processor.class:
+        class:  '%mrtn_json_api.object_mapper.annotation_processor.class.class%'
         public: false
         arguments:
             - '@mrtn_json_api.annotation_reader'
+
+    mrtn_json_api.object_mapper.annotation_processor.attribute:
+        class:  '%mrtn_json_api.object_mapper.annotation_processor.attribute.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.annotation_reader'
+
+    mrtn_json_api.object_mapper.annotation_processor.relationship:
+        class: '%mrtn_json_api.object_mapper.annotation_processor.relationship.class%'
+        public: false
+        arguments:
+            - '@mrtn_json_api.annotation_reader'
+
+    mrtn_json_api.object_mapper.definition_provider.annotation:
+        class:  '%mrtn_json_api.object_mapper.definition_provider.annotation.class%'
+        public: false
+        calls:
+            - ['registerProcessor', ['@mrtn_json_api.object_mapper.annotation_processor.class']]
+            - ['registerProcessor', ['@mrtn_json_api.object_mapper.annotation_processor.attribute']]
+            - ['registerProcessor', ['@mrtn_json_api.object_mapper.annotation_processor.relationship']]
 
     mrtn_json_api.object_mapper.definition_provider.cached:
         class: '%mrtn_json_api.object_mapper.definition_provider.cached.class%'

@@ -3,6 +3,8 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\Request;
 
+use Mikemirten\Bundle\JsonApiBundle\Exception\InvalidDocumentTypeException;
+use Mikemirten\Bundle\JsonApiBundle\Exception\InvalidMediaTypeException;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
@@ -55,11 +57,7 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
             return true;
         }
 
-        throw new BadRequestHttpException(sprintf(
-            'Provided document of type "%s" does not meet expected document of type "%s"',
-            get_class($document),
-            $expected
-        ));
+        throw new InvalidDocumentTypeException($document, $expected);
     }
 
     /**
@@ -73,13 +71,10 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
     protected function resolveRequestBody(Request $request, ParamConverter $configuration)
     {
         $isOptional = $configuration->isOptional();
-        $isJsonApi  = $request->headers->contains('Content-Type', 'application/vnd.api+json');
+        $isJsonApi  = $this->isContentTypeValid($request);
 
         if (! $isOptional && ! $isJsonApi) {
-            throw new BadRequestHttpException(sprintf(
-                'Invalid media-type of request, "application/vnd.api+json" expected, "%s" given.',
-                implode(', ', (array) $request->headers->get('Content-Type'))
-            ));
+            throw new InvalidMediaTypeException($request);
         }
 
         $content = $request->getContent();
@@ -91,6 +86,26 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
         if (! $isOptional) {
             throw new BadRequestHttpException('Request body is empty');
         }
+    }
+
+    /**
+     * Is content type of request valid ?
+     *
+     * @param  Request $request
+     * @return bool
+     */
+    protected function isContentTypeValid(Request $request): bool
+    {
+        $contentType = $request->headers->get('Content-Type', null, false);
+
+        foreach ($contentType as $header)
+        {
+            if (strpos(ltrim($header), 'application/vnd.api+json') === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

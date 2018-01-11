@@ -186,12 +186,9 @@ class JsonApiDocumentParameterConverterTest extends TestCase
         $request->attributes = $this->createMock(ParameterBag::class);
         $request->headers    = $this->createMock(HeaderBag::class);
 
-        $request->headers->method('contains')
-            ->with(
-                'Content-Type',
-                'application/vnd.api+json'
-            )
-            ->willReturn($apiJsonHeader);
+        $request->headers->method('get')
+            ->with('Content-Type')
+            ->willReturn($apiJsonHeader ? ['application/vnd.api+json'] : []);
 
         return $request;
     }

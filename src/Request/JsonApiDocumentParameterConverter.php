@@ -3,8 +3,8 @@ declare(strict_types = 1);
 
 namespace Mikemirten\Bundle\JsonApiBundle\Request;
 
-use Mikemirten\Bundle\JsonApiBundle\Exception\InvalidDocumentTypeException;
-use Mikemirten\Bundle\JsonApiBundle\Exception\InvalidMediaTypeException;
+use Mikemirten\Bundle\JsonApiBundle\Request\Exception\InvalidDocumentTypeException;
+use Mikemirten\Bundle\JsonApiBundle\Request\Exception\InvalidMediaTypeException;
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;

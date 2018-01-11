@@ -1,7 +1,7 @@
 <?php
 declare(strict_types = 1);
 
-namespace Mikemirten\Bundle\JsonApiBundle\Exception;
+namespace Mikemirten\Bundle\JsonApiBundle\Request\Exception;
 
 use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;

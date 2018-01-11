@@ -9,6 +9,7 @@ use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+use Mikemirten\Component\JsonApi\Exception\InvalidDocumentException;
 use Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
@@ -48,8 +49,7 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
             return false;
         }
 
-        $decoded  = $this->decodeContent($content);
-        $document = $this->hydrator->hydrate($decoded);
+        $document = $this->processDocument($content);
         $expected = $configuration->getClass();
 
         if ($expected === AbstractDocument::class || $document instanceof $expected) {
@@ -86,6 +86,27 @@ class JsonApiDocumentParameterConverter implements ParamConverterInterface
         if (! $isOptional) {
             throw new BadRequestHttpException('Request body is empty');
         }
+    }
+
+    /**
+     * Decode and hydrate document from raw content
+     *
+     * @param  string $content
+     * @return AbstractDocument
+     * @throws BadRequestHttpException
+     */
+    protected function processDocument(string $content): AbstractDocument
+    {
+        $decoded = $this->decodeContent($content);
+
+        try {
+            $document = $this->hydrator->hydrate($decoded);
+        }
+        catch (InvalidDocumentException $exception) {
+            throw new BadRequestHttpException('Document hydration error: ' . $exception->getMessage(), $exception);
+        }
+
+        return $document;
     }
 
     /**

@@ -7,6 +7,7 @@ use Mikemirten\Component\JsonApi\Document\AbstractDocument;
 use Mikemirten\Component\JsonApi\Document\NoDataDocument;
 use Mikemirten\Component\JsonApi\Document\ResourceCollectionDocument;
 use Mikemirten\Component\JsonApi\Document\SingleResourceDocument;
+use Mikemirten\Component\JsonApi\Exception\InvalidDocumentException;
 use Mikemirten\Component\JsonApi\Hydrator\DocumentHydrator;
 use PHPUnit\Framework\TestCase;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
@@ -89,6 +90,24 @@ class JsonApiDocumentParameterConverterTest extends TestCase
         $request   = $this->createRequest('{');
         $hydrator  = $this->createMock(DocumentHydrator::class);
         $converter = new JsonApiDocumentParameterConverter($hydrator);
+
+        $converter->apply($request, $configuration);
+    }
+
+    /**
+     * @expectedException \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+     * @expectedExceptionMessageRegExp ~Document hydration error~
+     */
+    public function testInvalidDocument()
+    {
+        $configuration = $this->createConfiguration();
+
+        $request   = $this->createRequest('{"data": "Invalid content"}');
+        $hydrator  = $this->createMock(DocumentHydrator::class);
+        $converter = new JsonApiDocumentParameterConverter($hydrator);
+
+        $hydrator->method('hydrate')
+            ->willThrowException(new InvalidDocumentException('Invalid "data" section of document'));
 
         $converter->apply($request, $configuration);
     }

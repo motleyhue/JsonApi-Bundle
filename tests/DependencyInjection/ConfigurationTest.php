@@ -88,7 +88,7 @@ class ConfigurationTest extends TestCase
      *
      * @param ContainerBuilder $builder
      */
-    protected function createTestingAliases(ContainerBuilder $builder): void
+    protected function createTestingAliases(ContainerBuilder $builder)
     {
         $testingAliases = [
             'test.document_hydrator'    => 'mrtn_json_api.document_hydrator',

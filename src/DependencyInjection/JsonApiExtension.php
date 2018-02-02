@@ -5,8 +5,8 @@ namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -121,7 +121,7 @@ class JsonApiExtension extends Extension
 
         foreach ($config as $name => $mapperDefinition)
         {
-            $mapper = new DefinitionDecorator('mrtn_json_api.object_mapper.abstract');
+            $mapper = new ChildDefinition('mrtn_json_api.object_mapper.abstract');
             $mapper->addTag('mrtn_json_api.object_mapper', ['alias' => $name]);
 
             foreach ($mapperDefinition['handlers'] as $handlerName)

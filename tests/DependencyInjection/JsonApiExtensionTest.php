@@ -5,9 +5,9 @@ namespace Mikemirten\Bundle\JsonApiBundle\DependencyInjection;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Config\Loader\LoaderInterface;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\DefinitionDecorator;
 use Symfony\Component\DependencyInjection\Reference;
 
 /**
@@ -37,10 +37,10 @@ class JsonApiExtensionTest extends TestCase
             ->method('setDefinition')
             ->with(
                 'mrtn_json_api.object_mapper.default',
-                $this->isInstanceOf(DefinitionDecorator::class)
+                $this->isInstanceOf(ChildDefinition::class)
             )
             ->willReturnCallback(
-                function(string $id, DefinitionDecorator $definition)
+                function(string $id, ChildDefinition $definition)
                 {
                     $this->assertSame(
                         'mrtn_json_api.object_mapper.abstract',

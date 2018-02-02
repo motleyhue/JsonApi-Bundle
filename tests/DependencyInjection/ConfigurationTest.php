@@ -54,32 +54,54 @@ class ConfigurationTest extends TestCase
         $builder->registerExtension(new JsonApiExtension());
         $builder->loadFromExtension(JsonApiExtension::ALIAS, $configuration);
 
+        $this->createTestingAliases($builder);
         $builder->compile();
 
         $this->assertInstanceOf(
             DocumentHydrator::class,
-            $builder->get('mrtn_json_api.document_hydrator')
+            $builder->get('test.document_hydrator')
         );
 
         $this->assertInstanceOf(
             HttpClient::class,
-            $builder->get('mrtn_json_api.http_client')
+            $builder->get('test.http_client')
         );
 
         $this->assertInstanceOf(
             ObjectMapper::class,
-            $builder->get('mrtn_json_api.object_mapper.default')
+            $builder->get('test.object_mapper')
         );
 
         $this->assertInstanceOf(
             JsonApiViewListener::class,
-            $builder->get('mrtn_json_api.kernel_view.listener')
+            $builder->get('test.kernel_view.listener')
         );
 
         $this->assertInstanceOf(
             ResourceBasedClient::class,
-            $builder->get('mrtn_json_api.resource_client.test_client')
+            $builder->get('test.resource_client')
         );
+    }
+
+    /**
+     * Set testing aliases for non-public services
+     *
+     * @param ContainerBuilder $builder
+     */
+    protected function createTestingAliases(ContainerBuilder $builder): void
+    {
+        $testingAliases = [
+            'test.document_hydrator'    => 'mrtn_json_api.document_hydrator',
+            'test.http_client'          => 'mrtn_json_api.http_client',
+            'test.object_mapper'        => 'mrtn_json_api.object_mapper.default',
+            'test.kernel_view.listener' => 'mrtn_json_api.kernel_view.listener',
+            'test.resource_client'      => 'mrtn_json_api.resource_client.test_client'
+        ];
+
+        foreach ($testingAliases as $alias => $serviceId)
+        {
+            $builder->setAlias($alias, $serviceId)->setPublic(true);
+        }
     }
 
     /**
@@ -114,9 +136,15 @@ class ConfigurationTest extends TestCase
         $builder->set('customized_guzzle_client', $guzzle);
         $builder->registerExtension(new JsonApiExtension());
         $builder->loadFromExtension(JsonApiExtension::ALIAS, $configuration);
+
+        $builder->setAlias(
+            'test.http_client',
+            'mrtn_json_api.http_client'
+        )->setPublic(true);
+
         $builder->compile();
 
-        $builder->get('mrtn_json_api.http_client')->request($request);
+        $builder->get('test.http_client')->request($request);
     }
 
     /**
@@ -174,9 +202,15 @@ class ConfigurationTest extends TestCase
         $builder->loadFromExtension(JsonApiExtension::ALIAS, $configuration);
 
         $builder->addCompilerPass($this->getGuzzleMockCompilerPass());
+
+        $builder->setAlias(
+            'test.http_client',
+            'mrtn_json_api.resource_client.test_client'
+        )->setPublic(true);
+
         $builder->compile();
 
-        $builder->get('mrtn_json_api.resource_client.test_client')->get('test_resource');
+        $builder->get('test.http_client')->get('test_resource');
     }
 
     /**

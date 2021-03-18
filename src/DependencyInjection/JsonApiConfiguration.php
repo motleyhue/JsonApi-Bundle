@@ -41,7 +41,7 @@ class JsonApiConfiguration implements ConfigurationInterface
         $builder->arrayNode('mappers')
 
             /* @see https://github.com/symfony/symfony/issues/12304 */
-            ->useAttributeAsKey(true)
+            ->useAttributeAsKey('name')
 
             ->defaultValue(['default' => [
                 'handlers' => [
@@ -51,9 +51,9 @@ class JsonApiConfiguration implements ConfigurationInterface
                 ]
             ]])
             ->prototype('array')
-                ->children()
-                    ->arrayNode('handlers')
-                        ->prototype('scalar');
+            ->children()
+            ->arrayNode('handlers')
+            ->prototype('scalar');
     }
 
     /**
@@ -65,8 +65,8 @@ class JsonApiConfiguration implements ConfigurationInterface
     {
         $builder->arrayNode('http_client')
             ->children()
-                ->scalarNode('guzzle_service')
-                ->cannotBeEmpty();
+            ->scalarNode('guzzle_service')
+            ->cannotBeEmpty();
     }
 
     /**
@@ -79,19 +79,19 @@ class JsonApiConfiguration implements ConfigurationInterface
         $children = $builder->arrayNode('resource_clients')
 
             /* @see https://github.com/symfony/symfony/issues/12304 */
-            ->useAttributeAsKey(true)
+            ->useAttributeAsKey('name')
 
             ->prototype('array')
-                ->children()
-                    ->scalarNode('base_url')
-                        ->isRequired()
-                        ->cannotBeEmpty()
-                    ->end()
+            ->children()
+            ->scalarNode('base_url')
+            ->isRequired()
+            ->cannotBeEmpty()
+            ->end()
 
-                    ->arrayNode('decorators')
-                        ->prototype('scalar')
-                        ->end()
-                    ->end();
+            ->arrayNode('decorators')
+            ->prototype('scalar')
+            ->end()
+            ->end();
 
         $this->processEndpoints($children);
     }
@@ -106,17 +106,17 @@ class JsonApiConfiguration implements ConfigurationInterface
         $builder->arrayNode('resources')
 
             /* @see https://github.com/symfony/symfony/issues/12304 */
-            ->useAttributeAsKey(true)
+            ->useAttributeAsKey('name')
 
             ->prototype('array')
-                ->children()
-                    ->scalarNode('path')
-                        ->isRequired()
-                        ->cannotBeEmpty()
-                    ->end()
+            ->children()
+            ->scalarNode('path')
+            ->isRequired()
+            ->cannotBeEmpty()
+            ->end()
 
-                    ->arrayNode('methods')
-                        ->prototype('array')
-                            ->children();
+            ->arrayNode('methods')
+            ->prototype('array')
+            ->children();
     }
 }

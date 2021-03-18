@@ -19,8 +19,10 @@ class JsonApiConfiguration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $builder  = new TreeBuilder();
-        $children = $builder->root(JsonApiExtension::ALIAS)->children();
+        $builder = new TreeBuilder(JsonApiExtension::ALIAS);
+        $children = $builder
+            ->getRootNode()
+            ->children();
 
         $this->processMappers($children);
         $this->processHttpClient($children);
